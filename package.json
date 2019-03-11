@@ -1,0 +1,36 @@
+{
+  "name": "teaclub",
+  "version": "0.0.1",
+  "author": "Ming",
+  "private": true,
+  "scripts": {
+    "build": "NODE_ENV=production node_modules/.bin/gulp",
+    "dev": "node_modules/.bin/gulp dev"
+  },
+  "dependencies": {
+    "@sunoj/touchemulator": "^0.0.1",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "gulp": "^3.9.1",
+    "gulp-clean-css": "^3.9.0",
+    "gulp-concat": "^2.6.1",
+    "gulp-preprocess": "^2.0.0",
+    "gulp-replace": "^0.6.1",
+    "gulp-util": "^3.0.8",
+    "gulp-watch": "^4.3.11",
+    "jobs": "^0.0.4",
+    "lodash": "^4.17.10",
+    "logline": "^1.1.2",
+    "luxon": "^1.4.3",
+    "jquery": "^3.3.1",
+    "parcel-bundler": "^1.10.3",
+    "static": "^2.0.0",
+    "tippy.js": "^3.0.5",
+    "vue": "^2.5.17",
+    "weui.js": "^1.1.4",
+    "zepto": "^1.2.0"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-preset-env": "^1.7.0"
+  }
+}

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="user-scalable=no"/>
+    <link rel="stylesheet" href="static/style/popupstyle.css">
+  </head>
+  <body>
+    <div class="popup" id="popup">
+      <div class="settings">
+        <div class="weui-tab">
+          <div class="weui-navbar">
+            <div class="weui-navbar__item  weui-bar__item_on" data-type="frequency_settings">
+              任务设置
+            </div>
+            <div class="weui-navbar__item" data-type="other_settings">
+              高级设置
+            </div>
+          </div>
+          <div class="weui-tab__panel">
+            <form id="settings" data-persist="garlic" data-domain="true" data-destroy="false" method="POST">
+              <div class="frequency_settings settings_box" >
+                <div class="weui-cells weui-cells_form">
+                  <div class="weui-cell weui-cell_select weui-cell_select-after" v-for="task in tasks">
+                    <div class="weui-cell__bd job-m">
+                      <span :title="task.description" v-tippy>
+                        <a v-if="task.platform == 'm'" class="openMobilePage" :data-url="task.url">{{task.title}}</a>
+                        <a v-else :href="task.url" target="_blank">{{task.title}}</a>
+                      </span>
+                      <span v-show="task.suspended && !task.checked" v-tippy title="未知登录状态，请点击任务名称手动运行">
+                        <i class="job-state weui-icon-waiting-circle"></i>
+                      </span>
+                      <i v-show="task.checked" v-tippy :title="task.checkin_description" class="today weui-icon-success-circle"></i>
+                      <i v-show="!task.checked && !task.suspended" @click="retryTask(task)" class="reload-icon" v-tippy :title="task.last_run_description" ></i>
+                    </div>
+                    <div class="weui-cell__bd">
+                      <select class="weui-select" v-auto-save :name="`task-${task.id}_frequency`">
+                        <option v-for="option in task.frequencyOption" :value="option">
+                          {{ frequencyOptionText[option] }}
+                        </option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div class="other_actions">
+                  <div class="recommendation">
+                    <h3 style="text-align: center;color: #666;">服务推荐</h3>
+                    <p class="recommendServices">
+                      <span :class="service.class"  v-for="service in recommendServices">
+                        <a target="_blank" v-tippy :title="service.description" :href="service.link">{{service.title}}</a>
+                      </span>
+                    </p>
+                    <div class="recommendedLink">
+                      <p v-for="link in recommendedLinks">
+                        <a v-if="link.mobile" class="openMobilePage" :style="link.style" :data-url="link.url">{{link.title}}</a>
+                        <a v-else :href="link.url" :style="link.style" class="weui-form-preview__btn weui-form-preview__btn_primary" target="_blank">{{link.title}}</a>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div class="tips bottom-tips">
+                </div>
+              </div>
+              <div class="other_settings settings_box" style="display: none">
+                <div class="weui-cells weui-cells_form">
+                  <div class="weui-cell weui-cell_switch">
+                    <div class="weui-cell__bd">停用自动找券</div>
+                    <div class="weui-cell__ft">
+                      <input class="weui-switch" v-auto-save type="checkbox" name="disable_find_coupon">
+                    </div>
+                  </div>
+                  <div class="weui-cell weui-cell_switch">
+                    <div class="weui-cell__bd">不再提示签到通知</div>
+                    <div class="weui-cell__ft">
+                      <input class="weui-switch" v-auto-save type="checkbox" name="mute_checkin">
+                    </div>
+                  </div>
+                  <div class="weui-cell weui-cell_switch">
+                    <div class="weui-cell__bd">
+                      <span data-tippy-placement="top-start" class="tippy" data-tippy-content="开启后不再晚上12点至凌晨6点发送浏览器通知">开启夜晚防打扰</span>
+                    </div>
+                    <div class="weui-cell__ft">
+                      <input class="weui-switch" type="checkbox"  v-auto-save name="mute_night">
+                    </div>
+                  </div>
+                </div>
+                <div class="other_actions">
+                  <p class="tips" style="text-align: center;">
+                    茶友会当前版本为预览版，相关功能并不完善，若有功能建议或反馈，请写邮件至：ming@tiny.group
+                  </p>
+                </div>
+                <p class="text-tips version showChangelog tippy"  @click="showChangelog" data-tippy-content="点击查看版本更新记录" data-version="{{version}}"> 当前版本：{{version}}
+                  <span class="weui-badge weui-badge_dot" v-if="newChangelog"></span>
+                  <span class="weui-badge new-version" v-if="newVersion">有新版</span>
+                </p>
+              </div>
+            </form>
+          </div>
+        </div>
+        <div class="bottom-box">
+          <div class="avatar">
+            <a id="loginState" class="login-state" :title="loginStateDescription" v-tippy></a>
+          </div>
+          <div class="links">
+            <span class="el-tag el-tag--danger">
+              <a href="#" class="showAlipayRedpack" title="天天领支付宝红包" v-tippy>支付宝红包</a>
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="contents">
+        <div class="weui-tab">
+          <div class="weui-navbar">
+            <div class="weui-navbar__item weui-bar__item_on" data-type="messages">
+              最近通知
+              <span id="unreadCount" class="weui-badge">0</span>
+            </div>
+            <div class="weui-navbar__item zaoshu-tab" @click="getDiscounts()" data-type="discounts">
+              <img src="static/image/zaoshu.png" alt="" class="zaoshu-icon">
+              枣树集惠
+              <span class="weui-badge weui-badge_dot new-discounts" v-if="newDiscounts"></span>
+            </div>
+          </div>
+          <div class="weui-tab__panel">
+            <div id="messages" class="weui-cells contents-box messages">
+              <div class="message-items" v-if="messages && messages.length > 0">
+                <li v-for="message in messages">
+                  <div :class="`weui-panel__bd message-item type-${message.type}`" v-show="!selectedTab || selectedTab == message.type">
+                    <div class="weui-media-box weui-media-box_text">
+                      <h4 class="weui-media-box__title message">
+                        <i :class="`${message.type} ${message.reward}`"></i>
+                        {{message.title}}
+                      </h4>
+                      <p class="weui-media-box__desc">{{message.content}}</p>
+                      <ul class="weui-media-box__info">
+                        <li class="weui-media-box__info__meta">时间: {{message.time}}</li>
+                      </ul>
+                    </div>
+                  </div>
+                </li>
+              </div>
+              <div class="no_message" v-else> 暂时还没有未读消息 </div>
+            </div>
+            <div id="discounts" class="weui-cells contents-box discounts">
+              <div class="discount-list" v-if="discountList">
+                <div v-for="discount in discountList">
+                  <div :class="discount.pinned ? 'discount pinned' : 'discount'">
+                    <a class="title" :href="`https://zaoshu.so/discount/${discount.id}/redirect`" target="_blank">
+                      <span class="merchant" v-if="discount.merchant">
+                        <img :src="discount.merchant.icon" :alt="discount.merchant.name"/>
+                      </span>
+                      {{discount.title}}
+                      <span class="discount_price">{{discount.price}}</span>
+                    </a>
+                    <div class="description">
+                      <img v-if="discount.photo" :src="`${discount.photo}`" @error.once="backup_picture($event)" class="discount-photo backup_picture" :alt="discount.title">
+                      <p>{{discount.description}}</p>
+                    </div>
+                    <div class="weui-cell__ft">
+                      <span class="time">{{discount.displayTime}}</span>
+                      <a v-if="discount.couponUrl" class="get-coupon" v-tippy :title="discount.couponName" :href="`${discount.couponUrl}`" target="_blank">优惠券</a>
+                      <a class="go-buy" :href="`https://zaoshu.so/discount/${discount.id}/redirect`" target="_blank">去购买</a>
+                    </div>
+                  </div>
+                </div>
+                <div class="self-recommendation">
+                  <p class="tips">商家自荐/优惠爆料可联系微信：cindywchat</p>
+                </div>
+              </div>
+              <div class="laoding" v-else>
+                <div class="loading-masker" v-for="masker in numbers">
+                    <div class="white-widget grey-bg author-area">
+                      <div class="auth-info row">
+                        <div class="timeline-wrapper">
+                          <div class="timeline-item">
+                            <div class="animated-background">
+                              <div class="background-masker header-top"></div>
+                              <div class="background-masker header-left"></div>
+                              <div class="background-masker header-right"></div>
+                              <div class="background-masker header-bottom"></div>
+                              <div class="background-masker subheader-left"></div>
+                              <div class="background-masker subheader-right"></div>
+                              <div class="background-masker subheader-bottom"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="bottom">
+          <div class="weui-tabbar">
+            <a class="showChangelog weui-tabbar__item" @click="showChangelog" v-tippy title="查看茶友会最近更新记录" style="position: relative;" data-version="{{version}}">
+              <img src="static/image/update.png" alt="" class="weui-tabbar__icon">
+              <p class="weui-tabbar__label">最近更新
+                <span class="weui-badge weui-badge_dot" style="position: absolute;top: 0;right: 4em;" v-if="newChangelog"></span>
+                <span class="weui-badge" style="position: absolute;top: -.4em;right: 2em;" v-if="newVersion">有新版</span>
+              </p>
+            </a>
+            <a id="openGithub" class="weui-tabbar__item" href="https://github.com/sunoj/teaclub" v-tippy title="点击查看本插件的全部代码" target="_blank">
+              <img src="static/image/github.png" alt="" class="weui-tabbar__icon">
+              <p class="weui-tabbar__label">源代码</p>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 活动推荐 -->
+      <div id="specialEventDialags">
+        <div class="js_dialog" style="opacity: 1;">
+          <div class="weui-mask"></div>
+          <div class="weui-dialog">
+            <div class="weui-dialog__hd">
+              <strong class="weui-dialog__title">活动推荐</strong>
+            </div>
+            <span class="js-close">x</span>
+            <iframe id="specialEventIframe" frameborder="0" src=""></iframe>
+            <div class="weui-toast iframe-loading">
+              <i class="weui-loading weui-icon_toast"></i>
+              <p class="weui-toast__content">数据加载中</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- body 最后 -->
+    <script src="static/popup.js"></script>
+  </body>
+</html>

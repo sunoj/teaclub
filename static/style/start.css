@@ -1,0 +1,10 @@
+.start{
+    width: 640px;
+    margin: 0 auto;
+}
+
+.find-coupon{
+    width: 100%;
+    border: 1px solid #ccc;
+    margin: 12px 0;
+}

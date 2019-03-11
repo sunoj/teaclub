@@ -1,0 +1,1403 @@
+select {
+    text-indent: 0.01px;
+    text-overflow: '';
+    -moz-appearance: none;
+}
+
+a {
+    color:#0b85c3;
+}
+
+a:hover {
+    color: #006da5;
+}
+
+.popup{
+    height: 600px;
+    width: 800px;
+}
+
+.weui-cell_select{
+    height: 34px;
+    font-size: 15px;
+    padding: 2px 15px;
+}
+
+.frequency_settings .weui-cell__bd i.show{
+    font-size: 20px;
+    margin-left: -5px;
+    display: inline-block !important;
+    height: 20px;
+    margin-top: -2px;
+}
+
+.page__hd {
+    padding: 10px;
+}
+
+.weui-dialog {
+    max-width: 440px;
+}
+.page__desc{
+    padding: 5px 10px;
+}
+.settings{
+    width: 45.5%;
+    float: left;
+    background: #fbfbfb;
+    border-right: 1px solid #eee;
+}
+
+.settings .weui-navbar__item.weui-bar__item_on {
+    background-image: linear-gradient(180deg, #03A9F4, rgba(3, 169, 244, 0.52));
+    color: #fff;
+}
+
+.settings .weui-cell_switch {
+    height: 32px;
+    font-size: 15px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+
+.contents {
+    width: 54%;
+    float: right;
+    overflow: hidden;
+    background: #fafafa;
+    height: 600px;
+}
+
+.contents .weui-navbar__item.weui-bar__item_on {
+    background-image: linear-gradient(180deg,#549606,#06a90c94);
+    color: #fff;
+}
+
+.weui-navbar__item.weui-bar__item_on.zaoshu-tab{
+    color: #921714;
+    background: #eaeaea;
+    border-bottom: 1px #ccc solid;
+}
+
+.contents .weui-tab {
+    background: #f5f5f5;
+    height: 550px;
+}
+
+.weui-cell_switch {
+    height: 32px;
+    font-size: 16px;
+}
+
+.weui-tabbar__item{
+    padding: 8px 1px 0px;
+}
+
+.contents .weui-tab .weui-badge{
+    margin-left: 5px;
+    margin-top: -3px;
+    background-color: #4CAF50;
+}
+
+.contents .weui-tab .weui-badge.new-discounts{
+    background-color: #b9201d;
+    padding: 0.3em;
+    position: absolute;
+}
+
+.other_actions{
+    padding: 10px;
+    padding-bottom: 0;
+}
+
+.other_actions p{
+    padding: 5px 0;
+}
+
+.no_order, .no_message{
+    background: url(../image/empty.svg) no-repeat center 10px;
+    padding: 5em 0em;
+    text-align: center;
+    color: #ccc;
+    margin-top: 10em;
+}
+
+.bottom-tips {
+    padding: 5px;
+}
+
+.other_actions h3{
+    font-size: 16px;
+}
+
+.recommendation{
+    height: 210px;
+    font-size: 12px;
+}
+
+.tips .weui-btn_mini {
+    padding: 0.1em .5em;
+    line-height: 1.4;
+    margin-bottom: -7px;
+    font-size: 12px;
+}
+
+.reward_tips .newyear {
+    color: #f15f5f;
+}
+
+#renderFrame{
+    height: 0px;
+}
+
+.reload-icon{
+    cursor: pointer;
+}
+
+.frequency_settings .weui-cell__bd{
+    line-height: 34px;
+}
+
+.frequency_settings .weui-icon-waiting-circle{
+    font-size: 19px;
+}
+
+.switch-paymethod{
+    cursor: pointer;
+}
+
+#notice{
+    color: #333;
+}
+.alipay_action{
+    line-height: 26px;
+    height: 24px;
+    width: 120px;
+    margin: 0 auto;
+}
+
+.alipay_action svg{
+    float: left;
+}
+
+.messages-top{
+    margin-top: 8px;
+}
+
+.reload-icon {
+    background: url(../image/reload.svg) no-repeat 1px 1px;
+    width: 20px;
+    height: 21px;
+    color: #dcdcdc;
+    display: inline-block;
+    vertical-align: middle;
+    background-size: 17px;
+}
+
+.orders, .messages{
+    overflow-y: auto;
+    overflow-x: hidden;
+    height: 515px;
+}
+
+.orders li, .messages li{
+    display: block;
+}
+
+.orders .order_time{
+    position: relative;
+}
+
+.orders .show-order{
+    -webkit-mask: url(../image/show.svg) no-repeat center;
+    mask: url(../image/show.svg) no-repeat center;
+    -webkit-mask-size: 16px;
+    mask-size: 16px;
+}
+
+.orders .show-order, .orders .hide-order{
+    width: 20px;
+    height: 21px;
+    color: #dcdcdc;
+    display: inline-block;
+    vertical-align: middle;
+    background-size: 16px;
+    cursor: pointer;
+    background-color: #ccc;
+    position: absolute;
+    right: 5px;
+    top: 1px;
+}
+
+.orders .hide-order{
+    -webkit-mask: url(../image/hide.svg) no-repeat center;
+    mask: url(../image/hide.svg) no-repeat center;
+    -webkit-mask-size: 16px;
+    mask-size: 16px;
+}
+
+.discounts{
+    display: none;
+}
+
+.logo{
+    display: inline-block;
+}
+
+.order_time{
+    margin-top: .77em;
+    margin-bottom: .3em;
+    padding-left: 15px;
+    padding-right: 15px;
+    color: #999;
+    font-size: 12px;
+    padding-top: 5px;
+}
+
+#orders .weui-cell:before, .contents-box.weui-cells:before,  .contents-box.weui-cells:after{
+    border-top: none;
+    content: none;
+}
+.orders .good_title{
+    height: 55px;
+}
+
+.good_title{
+    font-size: 12px;
+    height: 80px;
+    display: block;
+    clear: both;
+    width: 98%;
+}
+
+.discount-list{
+    padding-top: 5px;
+}
+
+.discount-list li{
+    display: block;
+}
+
+.discount-list h5{
+    padding: .2em 1em;
+    background: #f3f3f3;
+}
+
+.discount{
+    border-bottom: 1px solid #eee;
+    padding: 5px;
+}
+
+.discount.pinned{
+    background-color: #fff7e0;
+}
+
+.discount .title{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    max-height: 32px;
+    -webkit-line-clamp: 2;
+    -moz-box-orient: vertical;
+    -webkit-box-orient: vertical;
+    padding: 5px;
+    line-height: 18px;
+    font-size: 15px;
+}
+.discount .description{
+    display: flex;
+    padding: 15px 5px;
+}
+
+.discount .discount-photo{
+    width: 75px;
+    height: 75px;
+}
+
+.discount_price{
+    color: #f04848;
+    font-weight: bold;
+}
+
+.discount .time{
+    font-size: 12px;
+}
+
+
+.discount .description p{
+    display: inline-block;
+    font-size: 12px;
+    color: #666;
+    width: 340px;
+    padding-left: 10px;
+    max-height: 48px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -moz-box-orient: vertical;
+    -webkit-box-orient: vertical;
+}
+
+.discount .merchant{
+    height: 15px;
+    line-height: 15px;
+    display: inline-block;
+    vertical-align: middle;
+    margin-top: -4px;
+}
+
+.discount .get-coupon{
+    font-size: 12px;
+    padding: .3em;
+}
+
+.discount .weui-cell__ft{
+    margin-top: -25px;
+    padding-bottom: 5px;
+}
+
+.discount a.go-buy:hover {
+    color: #fff;
+    background: #149813;
+}
+
+.orders .good_title p {
+    margin-left: 65px;
+}
+
+.self-recommendation p.tips {
+    font-size: 12px;
+    text-align: center;
+    padding: 1em;
+    color: #ccc;
+}
+
+.good_title p {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    max-height: 78px;
+    -webkit-line-clamp: 3;
+    -moz-box-orient: vertical;
+    -webkit-box-orient: vertical;
+    padding-bottom: 5px;
+    line-height: 18px;
+    margin-left: 85px;
+}
+
+.orders .good_title img{
+    width: 55px;
+    height: 55px;
+}
+
+.good_title img{
+    display: inline-block;
+    position: absolute;
+    left: 15px;
+    top: 10px;
+    padding-right: 10px;
+    width: 75px;
+    height: 75px;
+    overflow: hidden;
+}
+
+.good_title .description {
+    font-size: 12px;
+    color: #666;
+    max-height: 35px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -moz-box-orient: vertical;
+    -webkit-box-orient: vertical;
+}
+.good_title span.count {
+    color: #949494;
+}
+
+img.promotion_title{
+    display: inline-block;
+    padding-right: 10px;
+    width: 55px;
+    height: 55px;
+    overflow: hidden;
+    float: left;
+    position: unset;
+}
+
+.good_title a {
+    font-size: 13px;
+}
+
+.promotion_price{
+    font-size: 14px;
+    color: #1aad19;
+    display: block;
+    font-weight: 500;
+    padding-bottom: 5px;
+}
+
+
+.changelog .time{
+    font-size: 12px;
+    color: #666;
+}
+
+.changelog .blog{
+    float: right;
+    color: #888;
+    font-size: 12px;
+    text-decoration: none;
+    line-height: 24px;
+}
+
+.go-buy{
+    background: #1aad19;
+    color: #fff;
+    font-size: 14px;
+    padding: .3em .5em;
+    border-radius: 2px;
+}
+
+.orders .dismiss{
+    float: right;
+    padding: 2px;
+    position: absolute;
+    top: -2px;
+    right: 6px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.weui-cell.promotion{
+    background: #feedba54;
+}
+
+.buy-btn{
+    padding: 2px 5px;
+    line-height: 1.3;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+a.buy-btn:hover{
+    color: #efefef;
+}
+
+.good{
+    background: #fdfdfd;
+    border-bottom: 1px solid #f3f3f3;
+    border-top: 1px solid #f3f3f3;
+}
+
+.good + .good {
+    border-top: none;
+}
+
+.success_log{
+    font-size: 12px;
+    margin: 10px;
+    color: #690;
+}
+
+.order_price{
+    font-size: 12px;
+    color: #666;
+    display: block;
+}
+
+#dialogs,
+#changeLogs,
+#admissionTest {
+    display: none;
+}
+
+.zaoshu-icon{
+    width: auto;
+    height: 15px;
+    margin-top: -4px;
+    vertical-align:middle;
+}
+
+
+#admissionTest .testbox{
+    display: none;
+}
+
+#admissionTest .weui-dialog__bd{
+    line-height: 1.6;
+    max-height: 300px;
+    overflow-x: hidden;
+}
+
+#admissionTest .weui-dialog__bd p{
+    margin-bottom: 1em;
+}
+
+.testbox p {
+    text-align: left;
+}
+
+.new_price{
+    font-size: 14px;
+    color: #333;
+}
+
+.new_price.up{
+    color: #690;
+}
+
+.new_price.down{
+    color: #ea2222;
+}
+
+.time{
+    text-align: right;
+}
+
+.alipay_pay{
+    display: none;
+}
+
+.alipay_pay img{
+    padding: 24px;
+    background: #fff;
+}
+
+.weui-dialog__ft a{
+    cursor: pointer;
+}
+
+.weui-dialog .segmented-control{
+    width: 80%;
+    margin: 0 auto;
+    border: 1px solid #eee;
+    border-radius: 4px;
+}
+.segmented-control {
+  display: table;
+  width: 100%;
+  margin: 2em 0;
+  padding: 0;
+  background: #fff;
+}
+.segmented-control__item:first-child {
+    float: left;
+}
+.segmented-control__item:last-child {
+    float: right;
+}
+
+.segmented-control__item:first-child .segmented-control__label{
+  border-radius: 4px 0 0 4px;
+}
+
+.segmented-control__item:last-child .segmented-control__label{
+  border-radius: 0 4px 4px 0;
+}
+
+.segmented-control__item {
+    width: 49.5%;
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+}
+
+.segmented-control__input {
+  position: absolute;
+  visibility: hidden;
+}
+
+
+.segmented-control__label {
+  display: block;
+  margin: 0 -1px -1px 0; /* -1px margin removes double-thickness borders between items */
+  padding: .45em .25em;
+  font: 14px/1.5 sans-serif; 
+  text-align: center;  
+  cursor: pointer;
+}
+
+.segmented-control__label:hover {
+  background: #fafafa;
+}
+
+.checked .segmented-control__label{
+  background: #1aad19;
+  color: #fff;
+}
+
+.auto_login{
+    font-size: 14px;
+    margin: 10px 5px;
+}
+
+.weui-navbar+.weui-tab__panel{
+    padding-top: 30px;
+}
+
+.weui-navbar__item{
+    padding: 7px 0;
+    cursor: pointer;
+}
+
+.recommendedLink p{
+    text-align: center;
+    margin-top: 5px;
+}
+
+.iframe-loading{
+    z-index: 0 !important;
+}
+
+.js-close{
+    position: absolute;
+    right: 10px;
+    top: 1px;
+    padding: 4px;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.settings_box{
+    overflow-y: auto;
+    overflow-x: hidden;
+    height: 515px;
+}
+
+.settings .page__desc{
+    font-size: 12px;
+    height: 31px;
+    line-height: 18px;
+    color: #666;
+}
+
+.settings .weui-tab{
+    height: auto;
+}
+
+.tips .page__desc{
+    padding: 2px 5px;
+}
+
+.bottom{
+    height: 44px;
+    font-size: 12px;
+    position: relative;
+}
+
+img.weui-tabbar__icon {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.changelogs{
+    font-size: 14px;
+    padding: 10px;
+    text-align: left;
+    line-height: 2.2;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.loginNotice {
+    font-size: 14px;
+    padding: 10px 15px;
+    text-align: left;
+    line-height: 2.2;
+    max-height: 300px;
+    color: #5a5a5a;
+    overflow-y: auto;
+}
+
+.loginNotice b{
+   color: #2b902f;
+}
+
+#loginNotice .title{
+    background: #fbf3a5;
+    color: #ce7f66;
+    padding-top: 0.8em;
+}
+
+#loginNotice a {
+    color: #126700;
+}
+
+#loginNotice a:hover {
+    color: #0c4600;
+}
+
+#loginNotice a.failed {
+    color: #de4545;
+}
+
+#loginNotice.state-alive .title {
+    background: #b9e684ad;
+    color: #2b902f;
+    padding-top: 0.8em;
+}
+
+#faqDialags .weui-dialog,
+#feedbackDialags .weui-dialog{
+    background-color: #f8f8f8;
+    height: 460px;
+}
+
+#specialEventDialags iframe,
+#faqDialags iframe,
+#feedbackDialags iframe {
+    width: 90%;
+    height: 450px;
+}
+
+
+#feedbackResult,
+#wechatDialags,
+#feedbackDialags,
+#faqDialags,
+#specialEventDialags,
+#loginNotice,
+#listenAudio {
+    display: none;
+}
+
+.contents-box{
+    margin-top: 0;
+    padding-bottom: 10px;
+}
+
+.listenVoice{
+    text-align: left;
+}
+
+.messages-header{
+    display: flex;
+    border-bottom: 1px solid #ebeef5;
+    height: 33px;
+    padding-top: 0px;
+    position: fixed;
+    width: 54%;
+    background: #fafafa;
+    z-index: 10;
+}
+
+#order.weui-cells:after{
+    border-bottom: none;
+}
+
+.messages-tab {
+    position: relative;
+    flex: 1;
+    height: 48px;
+    cursor: pointer;
+}
+
+.messages-tab span{
+    width: 22px;
+    height: 22px;
+    background: #ccc;
+    display: block;
+    margin: 0 auto;
+}
+
+.messages-tab.selectedTab span{
+    background: #4bc2ff;
+}
+
+.messages-tab span.notice {
+    -webkit-mask: url(../image/notice.svg) no-repeat center;
+    mask: url(../image/notice.svg) no-repeat center;
+    -webkit-mask-size: 20px;
+    mask-size: 20px;
+}
+
+.messages-tab span.coupon {
+    -webkit-mask: url(../image/coupon.svg) no-repeat center;
+    mask: url(../image/coupon.svg) no-repeat center;
+    -webkit-mask-size: 22px;
+    mask-size: 22px;
+}
+
+.messages-tab span.checkin {
+    -webkit-mask: url(../image/checkin.svg) no-repeat center;
+    mask: url(../image/checkin.svg) no-repeat center;
+    -webkit-mask-size: 20px;
+    mask-size: 20px;
+}
+
+.message-items {
+    margin-top: 20px;
+}
+
+.message-items .weui-media-box {
+    padding: 5px 15px;
+    border-bottom: 1px solid #ebeef5;
+}
+
+.Button--link,
+.Button--plain {
+    height: auto;
+    padding: 0;
+    line-height: inherit;
+    border: none;
+    border-radius: 0;
+}
+
+.messages-tabIcon {
+    fill: #c2cfde;
+}
+
+.selectedTab .messages-tabIcon {
+    fill: #0f88eb;
+}
+
+button.Button.messages-tab.Button--plain:focus {
+    outline: none;
+}
+
+.selectedTab{
+    background: #f5f5f5;
+    border: 1px solid #e6e6e6;
+    border-bottom: none;
+    border-top: none;
+    background-image: linear-gradient(0deg, #ffffff, #e6e6e64a);
+}
+.message i{
+    padding-right: 5px;
+}
+
+.message .coupon{
+    background: url(../image/coupon.png) no-repeat;
+    width: 20px;
+    height: 20px;
+    background-size: 20px;
+    display: inline-block;
+    margin-bottom: -3px;
+}
+
+.message .checkin_notice {
+    background: url(../image/mileage.png) no-repeat;
+    width: 20px;
+    height: 20px;
+    background-size: 20px;
+    display: inline-block;
+    margin-bottom: -3px;
+}
+.message .checkin_notice.coin {
+    background-image: url(../image/coin.png);
+}
+
+.message .notice {
+    background: url(../image/notice.png) no-repeat;
+    width: 20px;
+    height: 20px;
+    background-size: 20px;
+    display: inline-block;
+    margin-bottom: -3px;
+}
+
+.message .notice.rebate {
+    background-image: url(../image/rebate.png);
+}
+
+.message .notice.jiabao {
+    background-image: url(../image/money.png);
+}
+
+.coupon-box{
+    position: relative;
+    height: 50px;
+    border: 1px solid #f2f2f2;
+    background: #fff;
+    display: inline-block;
+    display: block;
+    padding: 10px;
+}
+
+.coupon-box .price {
+    padding: 1px 5px;
+    color: #f23030;
+    font-size: 15px;
+    background: #fff4ec;
+    display: inline-block;
+}
+.coupon-box a {
+    font-size: 14px;
+    color: #555;
+    padding: 4px;
+}
+
+.reward {
+    cursor: pointer;
+    display: block;
+    color: #d29737;
+}
+
+.reward h4{
+    padding-top: 10px;
+    font-size: 22px; 
+    color:#4e4c4c;
+}
+
+.reward .qrcode{
+    width: 210px;
+    padding: 10px;
+}
+
+.reward .switch-tips{
+    font-size: 14px;
+    color: #ccc;
+}
+
+.other_actions .tips{
+    color: #ccc;
+}
+
+.switch{
+    cursor: pointer;
+    color: #f54e4d;
+}
+
+.switch p{
+    margin-top: -10px;
+}
+
+.switch .icon{
+    margin-bottom: -5px;
+}
+
+#unreadCount{
+    display: none;
+}
+
+.alipay_pay .redpack img{
+    padding: 10px;
+}
+
+.switch-paymethod i {
+    font-size: 21px;
+    margin-top: -4px;
+}
+
+.weui-cell__bd .weui-icon-info-circle{
+    margin-top: -4px;
+}
+
+#listenAudio .weui-cells{
+    margin-bottom: .8em;
+}
+
+#listenAudio .weui-cell_access{
+    cursor: pointer;
+}
+
+#changeLogs b {
+    color: #4CAF50;
+}
+
+.text-tips {
+    font-size: 12px;
+    text-align: center;
+    color: #666;
+    padding-top: 5px;
+    padding-bottom: 10px;
+}
+
+
+.recommendServices{
+    text-align: center;
+
+}
+.recommendServices .el-tag {
+   margin-right: 2px;
+}
+
+.openMobilePage{
+    cursor: pointer;
+}
+
+
+.el-tag {
+    background-color: rgba(64, 158, 255, .1);
+    display: inline-block;
+    padding: 0 10px;
+    height: 32px;
+    line-height: 30px;
+    font-size: 12px;
+    color: #409eff;
+    border-radius: 4px;
+    box-sizing: border-box;
+    border: 1px solid rgba(64, 158, 255, .2);
+    white-space: nowrap;
+}
+
+.el-tag a{
+    color: #2196F3;
+}
+
+.el-tag--success {
+    background-color: rgba(103, 194, 58, .1);
+    border-color: rgba(103, 194, 58, .2);
+    color: #67c23a;
+}
+
+.el-tag--success a{
+    color: #67c23a;
+}
+
+.el-tag--warning {
+    background-color: rgba(230, 162, 60, .1);
+    border-color: rgba(230, 162, 60, .2);
+    color: #e6a23c;
+}
+
+.el-tag--warning a {
+    color: #e6a23c;
+}
+
+.el-tag--danger {
+    background-color: hsla(0, 87%, 69%, .1);
+    border-color: hsla(0, 87%, 69%, .2);
+    color: #f56c6c;
+}
+.el-tag--danger a{
+    color: #ff1d1d;
+}
+
+.bottom-box{
+    height: 55px;
+    overflow: hidden;
+    border-top: #d4d4d4;
+    background: #f7f7fa;
+    position: relative;
+}
+
+
+.bottom-box .avatar{
+        width: 30px;
+        position: absolute;
+        left: 10px;
+        bottom: 11px;
+        height: 30px;
+}
+
+.bottom-box .avatar .login-state {
+    -webkit-mask: url(../image/avatar.svg) no-repeat center;
+    -webkit-mask-size: 30px;
+    mask: url(../image/avatar.svg) no-repeat center;
+    mask-size: 30px;
+    width: 30px;
+    height: 30px;
+    color: #dcdcdc;
+    display: inline-block;
+    cursor: pointer;
+    background-color: #cecece;
+}
+
+.bottom-box .avatar .login-state.alive{
+    background-color: #41bd2a;
+}
+
+.bottom-box .avatar .login-state.failed{
+    background-color: #f56c6c;
+}
+
+.bottom-box .avatar .login-state.warning {
+    background-color: #f7aa4d;
+}
+
+
+.bottom-box .links {
+    right: 10px;
+    position: absolute;
+    bottom: 10px;
+}
+
+.links .text-tips{
+    color: #bbb;
+    padding-bottom: 5px;
+}
+
+.links .el-tag{
+    padding: 0 8px;
+}
+
+.tips .weui-btn{
+    display: none;
+}
+
+.tips a.weui-btn_primary.weui-btn:hover {
+    color: #ffffffd6;
+}
+
+.showChangeLog{
+    cursor: pointer;
+}
+
+.offline-icon{
+    -webkit-mask: url(../image/offline.svg) no-repeat center;
+    -webkit-mask-size: 22px;
+    mask: url(../image/offline.svg) no-repeat center;
+    mask-size: 22px;
+    width: 22px;
+    height: 22px;
+    display: inline-block;
+    background-color: #666;
+    padding-right: 5px;
+    margin-bottom: -4px;
+}
+
+.online-icon{
+    -webkit-mask: url(../image/online.svg) no-repeat center;
+    -webkit-mask-size: 22px;
+    mask: url(../image/online.svg) no-repeat center;
+    mask-size: 22px;
+    width: 22px;
+    height: 22px;
+    background-color: #2b902f;
+    padding-right: 5px;
+    margin-bottom: -4px;
+    display: none;
+}
+
+.request-permissions-icon.weui-icon-warn {
+    color: #FFC107;
+    font-size: 22px;
+    cursor: pointer;
+}
+
+.state-alive .online-icon {
+    display: inline-block;
+}
+
+.state-alive .offline-icon {
+    display: none;
+}
+
+.el-tag--plus {
+        border-color: #f7aa4d;
+        background-color: #f9d2a3;
+}
+
+.el-tag--plus a{
+    color: #da8d00;
+}
+
+.settings .weui-cells_form{
+    margin-top: .8em;
+}
+
+.help_btns .el-tag a{
+    font-size: 14px;
+    padding: 12px;
+}
+
+.text-tips.version{
+    padding-bottom: 0;
+    cursor: pointer;
+}
+
+
+.loginNotice .detail {
+    display: none;
+    padding-top: 20px;
+}
+
+.loginNotice .detail h3 {
+    text-align: center;
+}
+
+.unknown .status-icon {
+    background-color: #ccc;
+}
+
+.alive .status-icon {
+    background-color: #289e2d;
+}
+
+.alive .status-text {
+    color: #289e2d;
+}
+
+.alive .weui-cell {
+    background: #e6ffcad4;
+}
+.alive .weui-cell:hover {
+    background: #d8f9b4;
+}
+.failed .weui-cell {
+    background: #ffd3d3b5;
+}
+.failed .weui-cell:hover {
+    background: #ffd9d9;
+}
+.failed .status-text {
+    color: #de4545;
+}
+
+#login i{
+    margin-top: -3px;
+}
+
+#know_more {
+    text-align: center;
+    padding-top: 10px;
+    color: #999;
+    cursor: pointer;
+}
+
+.update .weui-dialog .weui-dialog__bd{
+    white-space: pre-line;
+    text-align: left;
+    padding-top: 1em;
+}
+
+.update .dismiss{
+    cursor: pointer;
+    float: right;
+    margin-top: -13px;
+    padding: 5px 10px;
+    font-size: 22px;
+    margin-right: -7px;
+}
+
+.showApplyAlipayCode{
+    cursor: pointer;
+    margin-top: 10px;
+    color: #10aeff;
+}
+
+.apply-alipay-code .weui-dialog{
+    border: 5px solid #10aeff;
+    min-height: 400px;
+}
+
+.apply-alipay-code .weui-dialog__title{
+    color: #10aeff;
+}
+
+.reward-tips{
+    font-size: 12px;
+}
+
+.new-version{
+    margin-left: 5px;
+    margin-right: 5px;
+    margin-top: -2px;
+    padding: .2em .5em;
+}
+
+
+
+.timeline-item {
+    background: #fff;
+    border-bottom: 1px solid #f2f2f2;
+    padding: 25px;
+    margin: 0 auto;
+  }
+  @keyframes placeHolderShimmer {
+    0% {
+      background-position: -468px 0
+    }
+    100% {
+      background-position: 468px 0
+    }
+  }
+  .animated-background {
+    animation-duration: 1s;
+    animation-fill-mode: forwards;
+    animation-iteration-count: infinite;
+    animation-name: placeHolderShimmer;
+    animation-timing-function: linear;
+    background: #f6f7f8;
+    background: linear-gradient(to right, #eeeeee 8%, #dddddd 18%, #eeeeee 33%);
+    background-size: 800px 104px;
+    height: 40px;
+    position: relative;
+  }
+  .background-masker {
+    background: #fff;
+    position: absolute;
+  }
+  /* Every thing below this is just positioning */
+  .background-masker.header-top,
+  .background-masker.header-bottom,
+  .background-masker.subheader-bottom {
+    top: 0;
+    left: 40px;
+    right: 0;
+    height: 10px;
+  }
+  .background-masker.header-left,
+  .background-masker.subheader-left,
+  .background-masker.header-right,
+  .background-masker.subheader-right {
+    top: 10px;
+    left: 40px;
+    height: 8px;
+    width: 10px;
+  }
+  .background-masker.header-bottom {
+    top: 18px;
+    height: 6px;
+  }
+  .background-masker.subheader-left,
+  .background-masker.subheader-right {
+    top: 24px;
+    height: 6px;
+  }
+  .background-masker.header-right,
+  .background-masker.subheader-right {
+    width: auto;
+    left: 300px;
+    right: 0;
+  }
+  .background-masker.subheader-right {
+    left: 230px;
+  }
+  .background-masker.subheader-bottom {
+    top: 30px;
+    height: 10px;
+  }
+  .background-masker.content-top,
+  .background-masker.content-second-line,
+  .background-masker.content-third-line,
+  .background-masker.content-second-end,
+  .background-masker.content-third-end,
+  .background-masker.content-first-end {
+    top: 40px;
+    left: 0;
+    right: 0;
+    height: 6px;
+  }
+  .background-masker.content-top {
+    height: 20px;
+  }
+  .background-masker.content-first-end,
+  .background-masker.content-second-end,
+  .background-masker.content-third-end {
+    width: auto;
+    left: 380px;
+    right: 0;
+    top: 60px;
+    height: 8px;
+  }
+  .background-masker.content-second-line {
+    top: 68px;
+  }
+  .background-masker.content-second-end {
+    left: 420px;
+    top: 74px;
+  }
+  .background-masker.content-third-line {
+    top: 82px;
+  }
+  .background-masker.content-third-end {
+    left: 300px;
+    top: 88px;
+  }

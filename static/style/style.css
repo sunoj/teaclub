@@ -1,0 +1,75 @@
+#teaclub{
+    height: 80px;
+}
+
+a.teaclub-coupon:hover{
+    text-decoration: none;
+}
+
+#teaclub .loading, #teaclub .coupon-not-found{
+    background: #fff;
+    font-size: 16px;
+    text-align: center;
+    color: #ccc;
+}
+
+#teaclub .loading img, #teaclub .coupon-not-found img{
+    width: 80px;
+    vertical-align:middle;
+}
+
+.teaclub-discount{
+    padding: 10px;
+    background-color: #FFF2E8;
+}
+
+.coupon-bonus-item{
+    margin: 2px 0 0 66px;
+    width: 74%;
+    background-color: #ffe2e0;
+    border-radius: 6px;
+    display: block;
+}
+.coupon-bonus-item .coupon-item-left{
+    width: 66%;
+    color: #fff;
+    background-color: #de1d3d;
+    border-radius: 6px 0 0 6px;
+    display: inline-block;
+
+}
+.coupon-bonus-item .coupon-item-right{
+    text-align: right;
+    padding-left: 7px;
+    margin-top: 7px;
+    color: #df4c47;
+    display: inline-block;
+}
+
+.coupon-bonus-item .coupon-item-rmb {
+    font-family: arial;
+    font-size: 14px;
+    line-height: 18px;
+    text-align: right;
+    padding-right: 12px;
+    margin-top: 14px;
+}
+
+.coupon-bonus-item .coupon-item-surplus {
+    font-size: 12px;
+    line-height: 18px;
+    text-align: right;
+    padding-right: 12px;
+    margin-top: 6px;
+}
+
+.coupon-bonus-item .coupon-item-rmb .rmb {
+    font-family: tahoma;
+    font-size: 28px;
+    line-height: 18px;
+}
+
+#J_OtherDiscount .coupon-bonus-item{
+    line-height: 1;
+    margin-top: 20px;
+}
