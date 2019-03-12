@@ -30,7 +30,7 @@ async function bundleBuild(fileName) {
 }
 
 
-gulp.task('watch', function () {
+function watchFile() {
   // watch many files
   watch([
     'manifest.json', '*.html',
@@ -38,25 +38,25 @@ gulp.task('watch', function () {
   ], function () {
     gulp.start('default');
   });
-});
+};
 
-gulp.task('pack-contentjs', function () {
+function packContentJs() {
   return gulp.src([
     'node_modules/weui.js/dist/weui.min.js',
     'static/content_script.js'
   ])
   .pipe(concat('content_script.js'))
   .pipe(gulp.dest('build/static'));
-});
+}
 
-gulp.task('pack-content_style', function () {
+function packContentStyle() {
   return gulp.src(['static/style/weui.min.css', 'static/style/style.css'])
     .pipe(concat('content_style.css'))
     .pipe(cleanCss())
     .pipe(gulp.dest('build/static/style'));
-});
+};
 
-gulp.task('pack-popup_style', function () {
+function packPopupStyle() {
   return gulp.src([
     'static/style/weui.min.css',
     'node_modules/tippy.js/dist/tippy.css',
@@ -65,27 +65,19 @@ gulp.task('pack-popup_style', function () {
   .pipe(concat('popupstyle.css'))
   .pipe(cleanCss())
   .pipe(gulp.dest('build/static/style'));
-});
+};
 
-
-gulp.task('move-static', ['build-bundle'], function () {
-  gulp.src([
-    'static/audio/*.*', 'static/image/*.*', 'static/image/*/*.*', 'static/style/*.css'
-  ], { base: './' })
-    .pipe(gulp.dest('build'));
-});
-
-gulp.task('move-js', [], function () {
-  gulp.src([
+function moveJs() {
+  return gulp.src([
     'static/start.js',
     'static/mobile_script.js',
     'node_modules/zepto/dist/zepto.min.js',
     'node_modules/@sunoj/touchemulator/touch-emulator.js',
   ])
   .pipe(gulp.dest('build/static'));
-});
+};
 
-gulp.task('move-file', [], async function () {
+async function moveFile() {
   let browser = (process.env.BROWSER ? process.env.BROWSER : 'chrome')
   await new Promise((resolve, reject) => {
     gulp.src([
@@ -103,17 +95,23 @@ gulp.task('move-file', [], async function () {
     .on("end", resolve);
   });
   console.log('move-file done')
-});
+};
 
-
-gulp.task('build-bundle', ['move-file'], async function () {
+async function buildBundle() {
   console.log('build-bundle start')
   await bundleBuild('static/background.js')
   await bundleBuild('static/popup.js')
   console.log('build-bundle done')
-});
+};
 
-gulp.task('move-build-bundle', ['build-bundle'], async function () {
+function moveStatic() {
+  return gulp.src([
+    'static/audio/*.*', 'static/image/*.*', 'static/image/*/*.*', 'static/style/*.css'
+  ], { base: './' })
+    .pipe(gulp.dest('build'));
+};
+
+async function moveBuildBundle() {
   console.log('move-build-bundle start')
   let browser = (process.env.BROWSER ? process.env.BROWSER : 'chrome')
   await new Promise((resolve, reject) => {
@@ -132,12 +130,13 @@ gulp.task('move-build-bundle', ['build-bundle'], async function () {
     .on("end", resolve);
   });
   console.log('move-build-bundle done')
-});
+};
 
+const moveBuildBundleFile = gulp.series(moveFile, buildBundle, moveBuildBundle)
 
-gulp.task('default', [
-  'move-file', 'move-js', 'pack-content_style', 'pack-popup_style',
-  'pack-contentjs', 'build-bundle', 'move-build-bundle', 'move-static'
-]);
+exports.default = gulp.series(
+  moveFile, moveJs, packContentStyle, packPopupStyle,
+  packContentJs, moveBuildBundleFile, moveStatic
+);
 
-gulp.task('dev', ['default', 'watch']);
+exports.dev = gulp.series(exports.default, watchFile);
