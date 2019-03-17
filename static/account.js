@@ -14,10 +14,16 @@ module.exports = {
     // 处理登录状态
     if (loginState.pc.state == 'alive' || loginState.m.state == 'alive') {
       loginState.class = "alive"
-    } else if (loginState.pc.state == 'failed' && loginState.m.state == 'failed') {
+    }
+    if (loginState.pc.state == 'failed' || loginState.m.state == 'failed') {
       loginState.class = "failed"
-    } else if (loginState.pc.state == 'failed' || loginState.m.state == 'failed' || loginState.m.state == 'alive' || loginState.pc.state == 'alive') {
-      loginState.class = "warning"
+    }
+    if ( loginState.pc.time && loginState.m.time) {
+      if (new Date(loginState.pc.time) > new Date(loginState.m.time)) {
+        loginState.class = loginState.pc.state
+      } else {
+        loginState.class = loginState.m.state
+      }
     }
     return loginState
   }

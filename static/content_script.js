@@ -194,10 +194,10 @@ async function findCoupon(disable_find_coupon) {
   }
 }
 
-function markCheckinStatus(type, value, cb) {
+function markCheckinStatus(task, value, cb) {
   chrome.runtime.sendMessage({
     action: "markCheckinStatus",
-    batch: type,
+    taskId: task.id,
     value: value,
     status: "signed"
   }, function (response) {
@@ -228,14 +228,10 @@ function autoLogin() {
 
 // 飞猪里程
 function markFliggyCheckin(task) {
-  chrome.runtime.sendMessage({
-    action: "updateRunStatus",
-    taskId: task.id
-  })
   const signRes = document.getElementsByClassName("tlc-title")[0] && document.getElementsByClassName("tlc-title")[0].innerText
   const value = document.getElementsByClassName("tlc-title")[0] && document.getElementsByClassName("tlc-title")[0].getElementsByTagName("span")[0].innerText
   if (signRes && (signRes.indexOf("获得") > -1)) {
-    markCheckinStatus(task.key, value + '里程', () => {
+    markCheckinStatus(task, value + '里程', () => {
       chrome.runtime.sendMessage({
         action: "checkin_notice",
         value: value,
@@ -247,17 +243,24 @@ function markFliggyCheckin(task) {
       })
     })
   } else if (signRes && (signRes.indexOf("今日已领") > -1)) {
-    markCheckinStatus(task.key, value)
+    markCheckinStatus(task, value)
   }
 }
 
 function fliggyCheckin(setting) {
   if (setting != 'never') {
     weui.toast('茶友会运行中', 1000);
+    chrome.runtime.sendMessage({
+      action: "updateRunStatus",
+      taskId: 2
+    })
     let signInButton = document.getElementsByClassName("J_mySignInBtn")[0]
 
     if (signInButton && signInButton.innerText == "已签到") {
-      markCheckinStatus('fliggy-mytrip')
+      markCheckinStatus({
+        key: 'fliggy-mytrip',
+        id: 2
+      })
     } else if (signInButton && signInButton.innerText && signInButton.innerText.indexOf("签到") > -1) {
       simulateClick(signInButton)
       // 监控结果
@@ -274,6 +277,10 @@ function fliggyCheckin(setting) {
 function fliggyCheckin2(setting) {
   if (setting != 'never') {
     weui.toast('茶友会运行中', 1000);
+    chrome.runtime.sendMessage({
+      action: "updateRunStatus",
+      taskId: 3
+    })
     let signInButton = document.getElementsByClassName("J_makesurebuttontvipBtn")[0]
     if (signInButton && signInButton.innerText && signInButton.innerText == "确    认") {
       simulateClick(signInButton)
@@ -286,7 +293,10 @@ function fliggyCheckin2(setting) {
       }, 1000)
     } else {
       if (signInButton && signInButton.innerText == "已签到") {
-        markCheckinStatus('fliggy-tvip')
+        markCheckinStatus({
+          key: 'fliggy-tvip',
+          id: 3
+        })
       }
     }
   }
@@ -295,6 +305,10 @@ function fliggyCheckin2(setting) {
 function fliggyCheckin3(setting) {
   if (setting != 'never') {
     weui.toast('茶友会运行中', 1000);
+    chrome.runtime.sendMessage({
+      action: "updateRunStatus",
+      taskId: 4
+    })
     let signInButton = null
     let signInReward = null
     let spanElements = document.getElementsByTagName("span")
@@ -319,7 +333,10 @@ function fliggyCheckin3(setting) {
       }, 1000)
     } else {
       if (signInReward && signInReward.innerText) {
-        markCheckinStatus('rx-member')
+        markCheckinStatus({
+          key: 'rx-member',
+          id: 4
+        })
       }
     }
   }
@@ -327,11 +344,7 @@ function fliggyCheckin3(setting) {
 
 // 淘金币
 function markCoinCheckin(task, value) {
-  chrome.runtime.sendMessage({
-    action: "updateRunStatus",
-    taskId: task.id
-  })
-  markCheckinStatus(task.key, value + '淘金币', () => {
+  markCheckinStatus(task, value + '淘金币', () => {
     chrome.runtime.sendMessage({
       action: "checkin_notice",
       value: value,
@@ -348,6 +361,10 @@ function markCoinCheckin(task, value) {
 function coinCheckin(setting) {
   if (setting != 'never') {
     weui.toast('茶友会运行中', 1000);
+    chrome.runtime.sendMessage({
+      action: "updateRunStatus",
+      taskId: 1
+    })
     let signInButton = document.getElementsByClassName("game-coin-sign-ball")[0]
     let getWaterIcon = document.getElementsByClassName("game-icon large")[0]
     if (getWaterIcon) {
@@ -360,7 +377,10 @@ function coinCheckin(setting) {
           if (punchBtn && punchBtn.innerText == "打卡") {
             simulateClick(punchBtn)
           } else if (punchBtn && punchBtn.innerText == "已完成") {
-            markCheckinStatus('coin')
+            markCheckinStatus({
+              key: 'coin',
+              id: 1
+            })
           }
         }
       }, 1500);
@@ -381,7 +401,7 @@ function coinCheckin(setting) {
 
 // 主任务
 function CheckDom() {
-  if (window.location.host.indexOf("m.taobao.com") > -1) {
+  if (window.location.host.indexOf("m.taobao.com") > -1 && window.location.host.indexOf("item.taobao.com") < 0 )  {
     injectScript(chrome.extension.getURL('/static/touch-emulator.js'), 'body');
     injectScriptCode(`
       setTimeout(function () {
@@ -400,6 +420,28 @@ function CheckDom() {
       console.log("Response: ", response);
     });
   }
+  if (window.location.host == 'login.taobao.com') {
+    chrome.runtime.sendMessage({
+      action: "saveLoginState",
+      state: "failed",
+      message: "PC网页需要登录",
+      type: "pc"
+    }, function(response) {
+      console.log("Response: ", response);
+    });
+  }
+
+  if (window.location.host == 'login.m.taobao.com') {
+    chrome.runtime.sendMessage({
+      action: "saveLoginState",
+      state: "failed",
+      message: "移动网页需要登录",
+      type: "m"
+    }, function(response) {
+      console.log("Response: ", response);
+    });
+  }
+
   // 我的淘宝
   if (document.title == "我的淘宝" && window.location.host == 'h5.m.taobao.com') {
     if (document.getElementsByClassName("tb-toolbar-container")[0]) {

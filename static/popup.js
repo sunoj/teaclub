@@ -9,15 +9,20 @@ import {tasks, frequencyOptionText, findJobPlatform} from './tasks'
 import {getSetting, versionCompare, readableTime} from './utils'
 import {getLoginState} from './account'
 
-Vue.directive('tippy', {
-  componentUpdated(el) {
+function tippyElement(el) {
+  setTimeout(() => {
     let title = el.getAttribute('title')
     if (title) {
       tippy(el, {
         content: title
       })
     }
-  }
+  }, 10);
+}
+
+Vue.directive('tippy', {
+  componentUpdated: tippyElement,
+  inserted: tippyElement
 })
 
 Vue.directive('autoSave', {

@@ -36,7 +36,7 @@ function watchFile() {
     'manifest.json', '*.html',
     'static/*.js', 'static/style/*.css'
   ], function () {
-    gulp.start('default');
+    exports.default()
   });
 };
 
@@ -79,22 +79,18 @@ function moveJs() {
 
 async function moveFile() {
   let browser = (process.env.BROWSER ? process.env.BROWSER : 'chrome')
-  await new Promise((resolve, reject) => {
-    gulp.src([
-      'manifest.json', '*.html'
-    ])
-    .pipe(replace('{{version}}', process.env.VERSION))
-    .pipe(replace('{{buildid}}', process.env.BUILDID))
-    .pipe(replace('{{browser}}', browser))
-    .pipe(preprocess({
-      context: {
-        Browser: browser
-      }
-    }))
-    .pipe(gulp.dest('build'))
-    .on("end", resolve);
-  });
-  console.log('move-file done')
+  return gulp.src([
+    'manifest.json', '*.html'
+  ])
+  .pipe(replace('{{version}}', process.env.VERSION))
+  .pipe(replace('{{buildid}}', process.env.BUILDID))
+  .pipe(replace('{{browser}}', browser))
+  .pipe(preprocess({
+    context: {
+      Browser: browser
+    }
+  }))
+  .pipe(gulp.dest('build'))
 };
 
 async function buildBundle() {
@@ -114,22 +110,18 @@ function moveStatic() {
 async function moveBuildBundle() {
   console.log('move-build-bundle start')
   let browser = (process.env.BROWSER ? process.env.BROWSER : 'chrome')
-  await new Promise((resolve, reject) => {
-    gulp.src([
-      'dist/*.js'
-    ])
-    .pipe(replace('{{version}}', process.env.VERSION))
-    .pipe(replace('{{buildid}}', process.env.BUILDID))
-    .pipe(replace('{{browser}}', browser))
-    .pipe(preprocess({
-      context: {
-        Browser: browser
-      }
-    }))
-    .pipe(gulp.dest('build/static'))
-    .on("end", resolve);
-  });
-  console.log('move-build-bundle done')
+  return gulp.src([
+    'dist/*.js'
+  ])
+  .pipe(replace('{{version}}', process.env.VERSION))
+  .pipe(replace('{{buildid}}', process.env.BUILDID))
+  .pipe(replace('{{browser}}', browser))
+  .pipe(preprocess({
+    context: {
+      Browser: browser
+    }
+  }))
+  .pipe(gulp.dest('build/static'))
 };
 
 const moveBuildBundleFile = gulp.series(moveFile, buildBundle, moveBuildBundle)

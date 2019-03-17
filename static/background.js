@@ -138,7 +138,7 @@ function saveJobStack(jobStack) {
 
 function getTasks() {
   return _.map(tasks, (task) => {
-    var job_run_last_time = localStorage.getItem('task-' + task.id + '_lasttime')
+    let job_run_last_time = localStorage.getItem('task-' + task.id + '_lasttime')
     task.last_run_at = job_run_last_time ? parseInt(job_run_last_time) : null
     task.frequency = getSetting('task-' + task.id + '_frequency') || task.frequency
     // 如果是签到任务，则读取签到状态
@@ -203,27 +203,26 @@ function resetIframe(domId) {
 }
 
 // 执行组织交给我的任务
-function runJob(jobId, force = false) {
+function runJob(taskId, force = false) {
   // 不在凌晨阶段运行非强制任务
   if (DateTime.local().hour < 6 && !force) {
     return console.log('Silent Night')
   }
   log('background', "run job", {
-    jobId: jobId,
+    jobId: taskId,
     force: force
   })
   // 如果没有指定任务ID 就从任务栈里面找一个
-  if (!jobId) {
+  if (!taskId) {
     let jobStack = getSetting('jobStack', [])
     if (jobStack && jobStack.length > 0) {
-      jobId = jobStack.shift();
+      taskId = jobStack.shift();
       saveJobStack(jobStack)
     } else {
       return log('info', '好像没有什么事需要我做...')
     }
   }
-  let taskList = getTasks()
-  let task = _.find(taskList, {id: jobId})
+  let task = getTask(taskId)
 
   let platform = findJobPlatform(task)
 
@@ -420,24 +419,12 @@ function updateIcon() {
       chrome.browserAction.setTitle({
         title: "账号登陆失效"
       })
-      chrome.browserAction.setIcon({
-        path : {
-          "19": "static/image/offline19x.png",
-          "38": "static/image/offline38x.png"
-        }
-      });
     case 'warning':
       chrome.browserAction.setBadgeBackgroundColor({
         color: "#EE7E1B"
       });
       chrome.browserAction.setBadgeText({
         text: " ! "
-      });
-      chrome.browserAction.setIcon({
-        path : {
-          "19": "static/image/offline19x.png",
-          "38": "static/image/offline38x.png"
-        }
       });
       break;
     default:
@@ -474,9 +461,7 @@ function sendChromeNotification(id, content) {
 
 
 function runTask(msg) {
-  let taskId = msg.taskId
-  let taskList = getTasks()
-  let task = _.find(taskList, {id: taskId})
+  let task = getTask(msg.taskId)
   // set 临时运行
   localStorage.setItem('temporary_job' + taskId + '_frequency', 'onetime');
   runJob(taskId, true)
@@ -491,20 +476,45 @@ function runTask(msg) {
 
 }
 
-function updateRunStatus(msg) {
+function markCheckinStatus(msg) {
+  let task = getTask(msg.taskId)
+  if (task) {
+    let currentStatus = getSetting('checkin_' + task.key, null)
+    let data = {
+      date: DateTime.local().toFormat("o"),
+      time: new Date(),
+      value: msg.value
+    }
+    if (currentStatus && currentStatus.date == DateTime.local().toFormat("o")) {
+      console.log('已经记录过今日签到状态了')
+    } else {
+      localStorage.setItem('checkin_' + msg.batch, JSON.stringify(data));
+      return data
+    }
+  }
+}
+
+function getTask(taskId) {
   let taskList = getTasks()
-  let task = _.find(taskList, { id: msg.taskId })
-  localStorage.setItem('task-' + task.id + '_lasttime', new Date().getTime())
-  saveLoginState({
-    content: task.title + "成功运行",
-    state: "alive",
-    type: msg.mode || task.type[0]
-  })
-  // 如果任务周期小于10小时，且不是计划任务，则安排下一次运行
-  if (mapFrequency[task.frequency] < 600 && !task.schedule) {
-    chrome.alarms.create('runJob_' + task.id, {
-      delayInMinutes: mapFrequency[task.frequency]
+  return _.find(taskList, { id: taskId.toString() })
+}
+
+function updateRunStatus(msg) {
+  let task = getTask(msg.taskId)
+  if (task) {
+    console.log('updateRunStatus', task)
+    localStorage.setItem('task-' + task.id + '_lasttime', new Date().getTime())
+    saveLoginState({
+      content: task.title + "成功运行",
+      state: "alive",
+      type: msg.mode || task.type[0]
     })
+    // 如果任务周期小于10小时，且不是计划任务，则安排下一次运行
+    if (mapFrequency[task.frequency] < 600 && !task.schedule) {
+      chrome.alarms.create('runJob_' + task.id, {
+        delayInMinutes: mapFrequency[task.frequency]
+      })
+    }
   }
 }
 
@@ -514,7 +524,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     msg.action = msg.text
   }
   let loginState = getLoginState()
-  let hourInYear = DateTime.local().toFormat("oHH")
+  console.log('msg', msg)
   switch(msg.action){
     // 保存登陆状态
     case 'saveLoginState':
@@ -586,18 +596,10 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       break;
     // 签到状态
     case 'markCheckinStatus':
-      let currentStatus = getSetting('checkin_' + msg.batch, null)
-      let data = {
-        date: DateTime.local().toFormat("o"),
-        time: new Date(),
-        value: msg.value
-      }
-      if (currentStatus && currentStatus.date == DateTime.local().toFormat("o")) {
-        console.log('已经记录过今日签到状态了')
-      } else {
-        localStorage.setItem('checkin_' + msg.batch, JSON.stringify(data));
-        sendResponse(data)
-      }
+      let result = markCheckinStatus(msg)
+      sendResponse({
+        result
+      })
       break;
     // 更新运行状态
     case 'updateRunStatus':
