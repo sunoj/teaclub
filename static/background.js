@@ -479,7 +479,8 @@ function runTask(msg) {
 function markCheckinStatus(msg) {
   let task = getTask(msg.taskId)
   if (task) {
-    let currentStatus = getSetting('checkin_' + task.key, null)
+    let checkinKey = `checkin_${task.key}`
+    let currentStatus = getSetting(checkinKey, null)
     let data = {
       date: DateTime.local().toFormat("o"),
       time: new Date(),
@@ -488,21 +489,19 @@ function markCheckinStatus(msg) {
     if (currentStatus && currentStatus.date == DateTime.local().toFormat("o")) {
       console.log('已经记录过今日签到状态了')
     } else {
-      localStorage.setItem('checkin_' + msg.batch, JSON.stringify(data));
+      localStorage.setItem(checkinKey, JSON.stringify(data));
       return data
     }
   }
 }
 
 function getTask(taskId) {
-  let taskList = getTasks()
-  return _.find(taskList, { id: taskId.toString() })
+  return _.find(tasks, ["id", taskId.toString()])
 }
 
 function updateRunStatus(msg) {
   let task = getTask(msg.taskId)
   if (task) {
-    console.log('updateRunStatus', task)
     localStorage.setItem('task-' + task.id + '_lasttime', new Date().getTime())
     saveLoginState({
       content: task.title + "成功运行",
@@ -568,15 +567,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
         result: true
       })
       break;
-    case 'notice':
-      let icon = 'static/image/128.png'
-      sendChromeNotification(new Date().getTime().toString() + '_' + msg.batch, {
-        type: "basic",
-        title: msg.title,
-        message: msg.content,
-        iconUrl: icon
-      })
-      break;
+    // 签到通知
     case 'checkin_notice':
       var mute_checkin = getSetting('mute_checkin')
       if (mute_checkin && mute_checkin == 'checked' && !msg.test) {
@@ -586,7 +577,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
         if (msg.type == 'mileage') {
           icon = 'static/image/mileage.png'
         }
-        sendChromeNotification( new Date().getTime().toString() + '_' + msg.batch, {
+        sendChromeNotification( new Date().getTime().toString() + '_' + msg.reward, {
           type: "basic",
           title: msg.title,
           message: msg.content,

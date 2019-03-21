@@ -444,7 +444,7 @@ function CheckDom() {
 
   // 我的淘宝
   if (document.title == "我的淘宝" && window.location.host == 'h5.m.taobao.com') {
-    if (document.getElementsByClassName("tb-toolbar-container")[0]) {
+    if (document.getElementsByClassName("tb-toolbar-container")[0] || window.location.href == "https://h5.m.taobao.com/mlapp/mytaobao.html") {
       chrome.runtime.sendMessage({
         action: "saveLoginState",
         state: "alive",

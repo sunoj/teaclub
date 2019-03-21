@@ -110,6 +110,7 @@ var popupVM = new Vue({
   data: {
     tasks: [],
     messages: [],
+    followedTagIds: getSetting('followedTagIds', []),
     skuPriceList: {},
     recommendedLinks: [],
     newDiscounts: false,
@@ -120,6 +121,7 @@ var popupVM = new Vue({
     hiddenPromotionIds: getSetting('hiddenPromotionIds', []),
     selectedTab: null,
     discountList: null,
+    selectTag: null,
     newVersion: getSetting('newVersion', null),
     numbers: [ 1, 2, 3, 4, 5 ],
     loginStateDescription: "未能获取登录状态",
@@ -131,7 +133,8 @@ var popupVM = new Vue({
       pc: {
         state: "unknown"
       }
-    }
+    },
+    discountTab: 'featured'
   },
   mounted: async function () {
     // 查询最新优惠
@@ -142,13 +145,9 @@ var popupVM = new Vue({
       this.newDiscounts = true
     }
   },
-  watch: {
-    loginState: function (newState, oldState) {
-      if (oldState.m.state != "alive" && oldState.pc.state != "alive" && !oldState.default) {
-        if (newState.m.state == "alive" || newState.pc.state == "alive") {
-          // 用户状态改变为已登陆
-        }
-      }
+  computed: {
+    followed: function () {
+      return this.selectTag && this.followedTagIds.length > 0 && this.followedTagIds.indexOf(this.selectTag.id) > -1
     }
   },
   methods: {
@@ -174,9 +173,11 @@ var popupVM = new Vue({
       localStorage.setItem('hiddenPromotionIds', JSON.stringify(this.hiddenPromotionIds))
       this.$forceUpdate()
     },
-    getDiscounts: async function () {
+    getDiscounts: async function (condition) {
       this.newDiscounts = false
-      let response = await fetch("https://teaclub.zaoshu.so/discount")
+      this.discountList = null
+      let queryParams = new URLSearchParams(condition)
+      let response = await fetch(`https://teaclub.zaoshu.so/discount?${queryParams.toString()}`)
       let discounts = await response.json();
       this.discountList = discounts.map(function (discount) {
         discount.displayTime = readableTime(DateTime.fromISO(discount.createdAt))
@@ -184,6 +185,56 @@ var popupVM = new Vue({
       })
       localStorage.setItem('readDiscountAt', new Date())
       this.$forceUpdate()
+    },
+    filterByTag: async function (tag) {
+      this.discountTab = null
+      this.discountList = null
+      let response = await fetch(`https://teaclub.zaoshu.so/discount/tag/${tag.id}`)
+      let data = await response.json();
+      this.selectTag = data.tag
+      this.discountList = data.discounts.map(function (discount) {
+        discount.displayTime = readableTime(DateTime.fromISO(discount.createdAt))
+        return discount
+      })
+      localStorage.setItem('readDiscountAt', new Date())
+      this.$forceUpdate()
+    },
+    unfollowTag: async function (tag) {
+      this.followedTagIds = this.followedTagIds.filter(tagId => tagId != tag.id)
+      localStorage.setItem('followedTagIds', JSON.stringify(this.followedTagIds))
+    },
+    followTag: async function (tag) {
+      let followedTagIds = this.followedTagIds
+      followedTagIds.push(tag.id)
+      console.log('followedTagIds', followedTagIds, this.followedTagIds)
+      localStorage.setItem('followedTagIds', JSON.stringify(this.followedTagIds))
+    },
+    switchTab: async function (type) {
+      this.discountTab = type
+      this.selectTag = null
+      switch (type) {
+        case "featured":
+          this.getDiscounts({
+            all: false
+          })
+          break;
+        case "concerned":
+          if (this.followedTagIds.length > 0) {
+            this.getDiscounts({
+              tagIds: this.followedTagIds.join(',')
+            })
+          } else {
+            this.discountList = []
+          }
+          break;
+        case "hot":
+          this.getDiscounts({
+            hot: true
+          })
+          break;
+        default:
+          break;
+      }
     },
     showChangelog: function () {
       this.newChangelog = false
