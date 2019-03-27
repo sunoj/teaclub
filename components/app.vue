@@ -374,18 +374,6 @@ export default {
     };
   },
   mounted: async function() {
-    // 查询最新优惠
-    let response = await fetch(
-      "https://teaclub.zaoshu.so/discount/last?app=teaclub"
-    );
-    let lastDiscount = await response.json();
-    let readDiscountAt = localStorage.getItem("readDiscountAt");
-    if (
-      !readDiscountAt ||
-      new Date(lastDiscount.createdAt) > new Date(readDiscountAt)
-    ) {
-      this.newDiscounts = true;
-    }
     // 准备数据
     this.getTaskList();
 
@@ -393,6 +381,12 @@ export default {
     setTimeout(() => {
       this.getMessages()
     }, 50);
+
+    // 查询最新优惠
+    setTimeout(() => {
+      this.getLastDiscount()
+    }, 100);
+
     this.dealWithLoginState()
 
     // 接收消息
@@ -428,6 +422,17 @@ export default {
     });
   },
   methods: {
+    getLastDiscount: async function() {
+      let response = await fetch("https://teaclub.zaoshu.so/discount/last");
+      let lastDiscount = await response.json();
+      let readDiscountAt = localStorage.getItem("readDiscountAt");
+      if (
+        !readDiscountAt ||
+        new Date(lastDiscount.createdAt) > new Date(readDiscountAt)
+      ) {
+        this.newDiscounts = true;
+      }
+    },
     retryTask: function(task, hideNotice = false) {
       chrome.runtime.sendMessage(
         {
