@@ -3,78 +3,9 @@ $ = window.$ = window.jQuery = require('jquery')
 import {DateTime} from 'luxon'
 import tippy from 'tippy.js'
 import weui from 'weui.js'
-import Vue from '../node_modules/vue/dist/vue.esm.js'
+import Vue from 'vue'
 
-import {tasks, frequencyOptionText, findJobPlatform} from './tasks'
-import {getSetting, versionCompare, readableTime} from './utils'
-import {getLoginState} from './account'
-
-function tippyElement(el) {
-  setTimeout(() => {
-    let title = el.getAttribute('title')
-    if (title) {
-      tippy(el, {
-        content: title
-      })
-    }
-  }, 10);
-}
-
-Vue.directive('tippy', {
-  componentUpdated: tippyElement,
-  inserted: tippyElement
-})
-
-Vue.directive('autoSave', {
-  bind(el, binding) {
-    function revertValue(el) {
-      let current = getSetting(el.name, null);
-      if (el.type == 'checkbox') {
-        if (current == "checked") {
-          el.checked = true
-        } else {
-          el.checked = false
-        }
-      } else if (el.type == 'select-one'){
-        el.value = current || el.options[0].value
-      } else {
-        el.value = current
-      }
-    }
-    function saveToLocalStorage(el, binding) {
-      if (el.type == 'checkbox') {
-        if (el.checked) {
-          localStorage.setItem(el.name, "checked")
-        } else {
-          localStorage.removeItem(el.name)
-        }
-        if (binding.value.bindData) {
-          popupVM[binding.value.bindData] = el.checked
-        }
-      } else {
-        localStorage.setItem(el.name, el.value)
-      }
-      weui.toast("设置已保存", 500)
-    }
-    revertValue(el)
-    el.addEventListener('change', function(event) {
-      if (binding.value && binding.value.notice && el.checked) {
-        weui.confirm(binding.value.notice, function(){
-          saveToLocalStorage(el, binding)
-        }, function(){
-          event.preventDefault();
-          setTimeout(() => {
-            revertValue(el)
-          }, 50);
-        }, {
-          title: '选项确认'
-        });
-      } else {
-        saveToLocalStorage(el, binding)
-      }
-    });
-  }
-})
+import {getSetting} from './utils'
 
 $.each(['show', 'hide'], function (i, ev) {
   var el = $.fn[ev];
@@ -84,174 +15,12 @@ $.each(['show', 'hide'], function (i, ev) {
   };
 });
 
-let recommendServices = [
-  {
-    link: "https://cloud.tencent.com/redirect.php?redirect=1025&cps_key=8c3eff7793dd70781315d9b5c9727c39&from=console",
-    title: "腾讯云新客礼包",
-    description: "新客户无门槛领取2775元代金券",
-    class: "el-tag el-tag--success"
-  },
-  {
-    link: "https://www.boslife.me/aff.php?aff=435",
-    title: "科学上网服务",
-    description: "小明使用2年的科学上网服务",
-    class: "el-tag el-tag--warning"
-  },
-  {
-    link: "https://promotion.aliyun.com/ntms/yunparter/invite.html?userCode=sqj7d3bm",
-    title: "阿里云优惠券",
-    description: "领取阿里云全品类优惠券",
-    class: "el-tag"
-  },
-]
-
-var popupVM = new Vue({
-  el: '#popup',
-  data: {
-    tasks: [],
-    messages: [],
-    followedTagIds: getSetting('followedTagIds', []),
-    skuPriceList: {},
-    recommendedLinks: [],
-    newDiscounts: false,
-    frequencyOptionText: frequencyOptionText,
-    recommendServices: getSetting('recommendServices', recommendServices),
-    currentVersion: '{{version}}',
-    newChangelog: (versionCompare(getSetting('changelog_version', '2.0'), '{{version}}') < 0),
-    hiddenPromotionIds: getSetting('hiddenPromotionIds', []),
-    selectedTab: null,
-    discountList: null,
-    selectTag: null,
-    newVersion: getSetting('newVersion', null),
-    numbers: [ 1, 2, 3, 4, 5 ],
-    loginStateDescription: "未能获取登录状态",
-    loginState: {
-      default: true,
-      m: {
-        state: "unknown"
-      },
-      pc: {
-        state: "unknown"
-      }
-    },
-    discountTab: 'featured'
-  },
-  mounted: async function () {
-    // 查询最新优惠
-    let response = await fetch("https://teaclub.zaoshu.so/discount/last?app=teaclub")
-    let lastDiscount = await response.json();
-    let readDiscountAt = localStorage.getItem('readDiscountAt')
-    if (!readDiscountAt || new Date(lastDiscount.createdAt) > new Date(readDiscountAt)) {
-      this.newDiscounts = true
-    }
-  },
-  computed: {
-    followed: function () {
-      return this.selectTag && this.followedTagIds.length > 0 && this.followedTagIds.indexOf(this.selectTag.id) > -1
-    }
-  },
-  methods: {
-    retryTask: function (task, hideNotice = false) {
-      chrome.runtime.sendMessage({
-        action: "runTask",
-        hideNotice: hideNotice,
-        taskId: task.id
-      }, function(response) {
-        if (!hideNotice) {
-          weui.toast('手动运行成功', 3000);
-        }
-      });
-    },
-    backup_picture: function (e) {
-      e.currentTarget.src = "https://jjbcdn.zaoshu.so/web/img_error.png"
-    },
-    selectType: function (type) {
-      this.selectedTab = type
-    },
-    dismiss: function (order) {
-      this.hiddenPromotionIds.push(order.id)
-      localStorage.setItem('hiddenPromotionIds', JSON.stringify(this.hiddenPromotionIds))
-      this.$forceUpdate()
-    },
-    getDiscounts: async function (condition) {
-      this.newDiscounts = false
-      this.discountList = null
-      let queryParams = new URLSearchParams(condition)
-      let response = await fetch(`https://teaclub.zaoshu.so/discount?${queryParams.toString()}`)
-      let discounts = await response.json();
-      this.discountList = discounts.map(function (discount) {
-        discount.displayTime = readableTime(DateTime.fromISO(discount.createdAt))
-        return discount
-      })
-      localStorage.setItem('readDiscountAt', new Date())
-      this.$forceUpdate()
-    },
-    filterByTag: async function (tag) {
-      this.discountTab = null
-      this.discountList = null
-      let response = await fetch(`https://teaclub.zaoshu.so/discount/tag/${tag.id}`)
-      let data = await response.json();
-      this.selectTag = data.tag
-      this.discountList = data.discounts.map(function (discount) {
-        discount.displayTime = readableTime(DateTime.fromISO(discount.createdAt))
-        return discount
-      })
-      localStorage.setItem('readDiscountAt', new Date())
-      this.$forceUpdate()
-    },
-    unfollowTag: async function (tag) {
-      this.followedTagIds = this.followedTagIds.filter(tagId => tagId != tag.id)
-      localStorage.setItem('followedTagIds', JSON.stringify(this.followedTagIds))
-    },
-    followTag: async function (tag) {
-      let followedTagIds = this.followedTagIds
-      followedTagIds.push(tag.id)
-      console.log('followedTagIds', followedTagIds, this.followedTagIds)
-      localStorage.setItem('followedTagIds', JSON.stringify(this.followedTagIds))
-    },
-    switchTab: async function (type) {
-      this.discountTab = type
-      this.selectTag = null
-      switch (type) {
-        case "featured":
-          this.getDiscounts({
-            all: false
-          })
-          break;
-        case "concerned":
-          if (this.followedTagIds.length > 0) {
-            this.getDiscounts({
-              tagIds: this.followedTagIds.join(',')
-            })
-          } else {
-            this.discountList = []
-          }
-          break;
-        case "hot":
-          this.getDiscounts({
-            hot: true
-          })
-          break;
-        default:
-          break;
-      }
-    },
-    showChangelog: function () {
-      this.newChangelog = false
-      localStorage.setItem('changelog_version', $(this).data('version'))
-      weui.dialog({
-        title: '更新记录',
-        content: `<iframe id="changelogIframe" frameborder="0" src="https://teaclub.zaoshu.so/changelog?buildId={{buildid}}&browser={{browser}}&app=teaclub" style="width: 100%;min-height: 350px;"></iframe>`,
-        className: 'changelog',
-        buttons: [{
-          label: '完成',
-          type: 'primary'
-        }]
-      })
-    }
-  }
+import App from '../components/app.vue';
+new Vue({
+  el: '#app',
+  template: '<App/>',
+  components: { App }
 })
-
 
 // 接收消息
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
@@ -298,32 +67,7 @@ function showJEvent(rateLimit) {
   $("#specialEventDialags").show()
 }
 
-// 任务列表
-function getTaskList() {
-  return _.map(_.reject(tasks, ['hide', true]), (task) => {
-    task.last_run_at = getSetting(`task-${task.id}_lasttime`, null)
-    task.frequencySetting = getSetting(`task-${task.id}_frequency`, task.frequency)
-    task.last_run_description = task.last_run_at ?'上次运行： ' + readableTime(DateTime.fromMillis(Number(task.last_run_at))) : '从未执行'
-    // 如果是签到任务，则读取签到状态
-    if (task.checkin) {
-      let checkinRecord = getSetting('checkin_' + task.key, null)
-      if (checkinRecord && checkinRecord.date == DateTime.local().toFormat("o")) {
-        task.checked = true
-        task.checkin_description = '完成于：' + readableTime(DateTime.fromISO(checkinRecord.time)) + ( checkinRecord.value ? '，领到：' + checkinRecord.value : '')
-      }
-    }
-    // 选择运行平台
-    task.platform = findJobPlatform(task)
-    if (!task.url) {
-      task.url = task.platform ? task.src[task.platform] : task.src[task.type[0]]
-    }
-    if (!task.platform) {
-      task.suspended = true
-      task.platform = task.type[0]
-    }
-    return task
-  })
-}
+
 
 // 消息已读
 function readMessage() {
@@ -335,46 +79,6 @@ function readMessage() {
   });
 }
 
-// 处理登录状态
-function dealWithLoginState() {
-  let stateText = {
-    "failed": "失败",
-    "alive": "有效",
-    "unknown": "未知"
-  }
-  let loginState = getLoginState()
-  popupVM.loginState = loginState
-  popupVM.tasks = getTaskList()
-
-  function getStateDescription(loginState, type) {
-    return stateText[loginState[type].state] + (loginState[type].message ? `（ ${loginState[type].message} 上次检查： ${readableTime(DateTime.fromISO(loginState[type].time))} ）` : '')
-  }
-
-  popupVM.loginStateDescription = ("PC网页版登录" + getStateDescription(loginState, 'pc') + "，移动网页版登录" + getStateDescription(loginState, 'm'))
-
-  $("#loginState").removeClass("alive").removeClass("failed").removeClass("warning")
-  $("#loginState").addClass(loginState.class)
-}
-
-function makeupMessages(messages) {
-  if (messages) {
-    return messages.reverse().map(function (message) {
-      if (message.type == 'coupon') {
-        message.coupon = JSON.parse(message.content)
-      }
-      message.time = readableTime(DateTime.fromISO(message.time))
-      return message
-    })
-  } else {
-    return []
-  }
-}
-
-function getMessages() {
-  let messages = JSON.parse(localStorage.getItem('messages'))
-  messages = makeupMessages(messages)
-  popupVM.messages = messages
-}
 
 $( document ).ready(function() {
   var unreadCount = localStorage.getItem('unreadCount') || 0
@@ -385,22 +89,11 @@ $( document ).ready(function() {
   })
   let windowWidth = Number(document.body.offsetWidth)
   let time = Date.now().toString()
-  // 渲染通知
-  getMessages()
-
   // 标记已读
   readMessage()
 
-  // 渲染设置
-  popupVM.tasks = getTaskList()
-  popupVM.recommendedLinks = getSetting("recommendedLinks", [])
-
   // tippy
   tippy('.tippy')
-
-  // 处理登录状态
-  dealWithLoginState()
-
 
   $('body').width(windowWidth-1)
   // 窗口 resize

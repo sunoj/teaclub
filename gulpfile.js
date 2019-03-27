@@ -13,7 +13,7 @@ async function bundleBuild(fileName) {
   let options = {
     outDir: './dist', // 将生成的文件放入输出目录下，默认为 dist
     outFile: fileName, // 输出文件的名称
-    publicUrl: './', // 静态资源的 url ，默认为 dist
+    publicUrl: './static', // 静态资源的 url ，默认为 dist
     watch: false, // 是否需要监听文件并在发生改变时重新编译它们，默认为 process.env.NODE_ENV !== 'production'
     cache: true, // 启用或禁用缓存，默认为 true
     cacheDir: '.cache', // 存放缓存的目录，默认为 .cache
@@ -33,7 +33,7 @@ async function bundleBuild(fileName) {
 function watchFile() {
   // watch many files
   watch([
-    'manifest.json', '*.html',
+    'manifest.json', '*.html', 'components/*.vue',
     'static/*.js', 'static/style/*.css'
   ], function () {
     exports.default()
@@ -62,7 +62,7 @@ function packPopupStyle() {
     'node_modules/tippy.js/dist/tippy.css',
     'static/style/popup.css'
   ])
-  .pipe(concat('popupstyle.css'))
+  .pipe(concat('popup_style.css'))
   .pipe(cleanCss())
   .pipe(gulp.dest('build/static/style'));
 };
@@ -124,7 +124,15 @@ async function moveBuildBundle() {
   .pipe(gulp.dest('build/static'))
 };
 
-const moveBuildBundleFile = gulp.series(moveFile, buildBundle, moveBuildBundle)
+function moveBundleStatic() {
+  return gulp.src([
+    'dist/*.png', 'dist/*.svg', 'dist/*.jpg', 'dist/*.gif',
+    'dist/*.css'
+  ])
+    .pipe(gulp.dest('build/static'));
+};
+
+const moveBuildBundleFile = gulp.series(moveFile, buildBundle, moveBuildBundle, moveBundleStatic)
 
 exports.default = gulp.series(
   moveFile, moveJs, packContentStyle, packPopupStyle,

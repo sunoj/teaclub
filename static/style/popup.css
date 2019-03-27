@@ -1417,7 +1417,7 @@ button.Button.messages-tab.Button--plain:focus {
 
 .tabs{
   height: 40px;
-  width: 56%;
+  width: 200px;
   background: #fff;
   float: left;
 }
@@ -1487,7 +1487,7 @@ button.Button.messages-tab.Button--plain:focus {
 }
 
 .select-tag{
-  width: 39%;
+  width: 230px;
   float: right;
   line-height: 50px;
   font-size: 14px;
@@ -1497,9 +1497,20 @@ button.Button.messages-tab.Button--plain:focus {
 .select-tag span.tag-name{
   font-size: 14px;
   background: #eee;
-  padding: 5px 10px;
+  padding: 0px 8px;
   vertical-align: middle;
   color: #737373;
+  width: 126px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -moz-box-orient: vertical;
+  -webkit-box-orient: vertical;
+  float: left;
+  height: 30px;
+  line-height: 30px;
+  margin-top: 11px;
 }
 
 .select-tag a.weui-btn{
