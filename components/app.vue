@@ -2,7 +2,7 @@
   <div>
     <div class="settings">
       <div class="weui-tab">
-        <div class="weui-navbar">
+        <div :class="`${scienceOnline} weui-navbar`">
           <div class="weui-navbar__item weui-bar__item_on" data-type="frequency_settings">任务设置</div>
           <div class="weui-navbar__item" data-type="other_settings">高级设置</div>
         </div>
@@ -157,7 +157,7 @@
             id="loginState"
             :class="`login-state ${loginState.class}`"
             :target="loginState.class != 'alive' ? '_blank' : '_self'"
-            :href="loginState.class == 'failed' ? 'https://i.taobao.com/my_taobao.htm' : ''"
+            :href="loginState.class != 'alive' ? 'https://i.taobao.com/my_taobao.htm' : ''"
             :title="loginStateDescription"
             v-tippy
           ></a>
@@ -172,11 +172,11 @@
     <div class="contents">
       <div class="weui-tab">
         <div class="weui-navbar">
-          <div class="weui-navbar__item weui-bar__item_on" data-type="messages">
+          <div :class="`weui-navbar__item ${contentType == 'messages' ? 'weui-bar__item_on' : ''}`" @click="switchContentType('messages')">
             最近通知
             <span id="unreadCount" class="weui-badge">0</span>
           </div>
-          <div class="weui-navbar__item zaoshu-tab" @click="readDiscounts()" data-type="discounts">
+          <div :class="`weui-navbar__item zaoshu-tab ${contentType == 'discounts' ? 'weui-bar__item_on' : ''}`" @click="switchContentType('discounts')">
             <img src="../static/image/zaoshu.png" alt="" class="zaoshu-icon">
             枣树集惠
             <span
@@ -186,7 +186,7 @@
           </div>
         </div>
         <div class="weui-tab__panel">
-          <div id="messages" class="weui-cells contents-box messages">
+          <div id="messages" v-if="contentType == 'messages'" class="weui-cells contents-box messages">
             <div class="message-items" v-if="messages && messages.length > 0">
               <li v-for="(message, index) in messages" :key="index">
                 <div
@@ -208,7 +208,7 @@
             </div>
             <div class="no_message" v-else>暂时还没有未读消息</div>
           </div>
-          <discounts/>
+          <discounts v-if="contentType == 'discounts'"/>
         </div>
       </div>
       <div class="bottom">
@@ -354,11 +354,13 @@ export default {
       frequencyOptionText: frequencyOptionText,
       recommendServices: getSetting("recommendServices", recommendServices),
       currentVersion: "{{version}}",
+      contentType: 'messages',
       newChangelog:
         versionCompare(getSetting("changelog_version", "2.0"), "{{version}}") <
         0,
       hiddenPromotionIds: getSetting("hiddenPromotionIds", []),
       selectedTab: null,
+      scienceOnline: false,
       newVersion: getSetting("newVersion", null),
       loginStateDescription: "未能获取登录状态",
       loginState: {
@@ -386,6 +388,11 @@ export default {
     setTimeout(() => {
       this.getLastDiscount()
     }, 100);
+
+    // 测试是否科学上网
+    setTimeout(() => {
+      this.tryGoogle()
+    }, 200);
 
     this.dealWithLoginState()
 
@@ -422,6 +429,28 @@ export default {
     });
   },
   methods: {
+    tryGoogle: async function() {
+      let response = await fetch("https://www.googleapis.com/discovery/v1/apis?name=abusiveexperiencereport");
+      if ( response.status == "200" ) {
+        this.scienceOnline = true;
+      } else {
+        this.scienceOnline = false;
+      }
+    },
+    switchContentType: function(type) {
+      this.contentType = type
+      switch (type) {
+        case "messages":
+          this.getMessages()
+          break;
+        case "discounts":
+          this.readDiscounts()
+          break;
+        default:
+          break;
+      }
+
+    },
     getLastDiscount: async function() {
       let response = await fetch("https://teaclub.zaoshu.so/discount/last");
       let lastDiscount = await response.json();
@@ -545,5 +574,8 @@ export default {
 <style scoped>
 .order-good.suspended {
   opacity: 0.5;
+}
+.weui-navbar.true .weui-navbar__item.weui-bar__item_on{
+  background-image: linear-gradient(180deg,#09bb07,#06a90c94);
 }
 </style>

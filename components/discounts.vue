@@ -38,6 +38,13 @@
           @click="followTag(selectTag)"
         >关注</a>
       </div>
+      <div class="search" v-else>
+        <input v-model="keyword" placeholder="请输入关键词" v-on:keyup.enter="search"/>
+        <i v-if="showClear"
+          class="circle-close"
+          @click="clear"
+        >&times;</i>
+      </div>
     </div>
     <div class="discount-list" v-if="discountList">
       <div class="discounts-box" v-for="discount in discountList" :key="discount.id">
@@ -85,6 +92,10 @@
         <h4>暂时还没有关注任何标签</h4>
         <p class="tips">点击优惠信息中的标签可以筛选并关注标签哦</p>
       </div>
+      <div v-if="keyword && discountList.length < 1" class="no_message">
+        <h4>没有找到任何优惠</h4>
+        <p class="tips">为了保证结果有效性，只展示近两周的优惠</p>
+      </div>
       <div v-if="discountList.length > 0" class="self-recommendation">
         <p class="tips">商家自荐/优惠爆料可联系微信：cindywchat</p>
       </div>
@@ -108,7 +119,8 @@ export default {
       followedTagIds: getSetting("followedTagIds", []),
       discountTab: "featured",
       discountList: null,
-      selectTag: null
+      selectTag: null,
+      keyword: null
     };
   },
   mounted: async function() {
@@ -121,6 +133,9 @@ export default {
         this.followedTagIds.length > 0 &&
         this.followedTagIds.indexOf(this.selectTag.id) > -1
       );
+    },
+    showClear: function () {
+      return this.keyword && this.keyword.length > 0
     }
   },
   methods: {
@@ -143,6 +158,15 @@ export default {
       });
       localStorage.setItem("readDiscountAt", new Date());
       this.$forceUpdate();
+    },
+    search: async function() {
+      this.getDiscounts({
+        keyword: this.keyword,
+      });
+    },
+    clear: async function() {
+      this.keyword = null
+      this.switchTab('featured')
     },
     filterByTag: async function(tag) {
       this.discountTab = null;
@@ -282,12 +306,46 @@ export default {
   z-index: 10;
 }
 
-.select-tag {
+.select-tag, .search {
   width: 230px;
   float: right;
   line-height: 50px;
   font-size: 14px;
   text-align: right;
+  position: relative;
+}
+
+.search input{
+  -webkit-appearance: none;
+  background-color: #fff;
+  background-image: none;
+  border-radius: 4px;
+  border: 1px solid #dcdfe6;
+  box-sizing: border-box;
+  color: #606266;
+  display: inline-block;
+  font-size: inherit;
+  height: 30px;
+  line-height: 30px;
+  outline: none;
+  padding: 0 15px;
+  transition: border-color .2s cubic-bezier(.645,.045,.355,1);
+  width: 70%;
+  margin-top: 12px;
+  margin-right: 6px;
+}
+
+.search input:focus {
+    outline: none;
+    border-color: #409eff;
+}
+
+.search .circle-close{
+  position: absolute;
+  right: 12px;
+  color: #ccc;
+  padding: 0 2px;
+  cursor: pointer;
 }
 
 .tag-box{

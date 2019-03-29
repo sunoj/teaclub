@@ -190,16 +190,6 @@ $( document ).ready(function() {
     $('.settings_box.' + type).show()
   });
 
-  $('.contents .weui-navbar__item').on('click', function () {
-    $(this).addClass('weui-bar__item_on').siblings('.weui-bar__item_on').removeClass('weui-bar__item_on');
-    var type = $(this).data('type')
-    if (type == 'messages') {
-      readMessage()
-    }
-    $('.contents-box').hide()
-    $('.contents-box.' + type).show()
-  });
-
   $(document).on("click", ".openMobilePage", function () {
     chrome.runtime.sendMessage({
       action: "openUrlAsMoblie",
