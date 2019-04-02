@@ -73,19 +73,6 @@ module.exports = {
       frequencyOption: ['daily', 'never'],
       frequency: 'daily'
     },
-    {
-      id: '5',
-      src: {
-        pc: 'https://i.taobao.com/my_taobao.htm',
-      },
-      url: 'https://i.taobao.com/my_taobao.htm',
-      title: '我的淘宝',
-      description: "检查登录状态",
-      mode: 'iframe',
-      type: ['pc'],
-      hide: true,
-      frequency: '2h'
-    },
   ],
   // 根据登录状态选择任务模式
   findJobPlatform: function (job) {

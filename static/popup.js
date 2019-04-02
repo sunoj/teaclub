@@ -71,7 +71,6 @@ function showJEvent(rateLimit) {
 
 // 消息已读
 function readMessage() {
-  $("#unreadCount").fadeOut()
   chrome.runtime.sendMessage({
     text: "clearUnread"
   }, function (response) {
@@ -81,7 +80,6 @@ function readMessage() {
 
 
 $( document ).ready(function() {
-  var unreadCount = localStorage.getItem('unreadCount') || 0
   const displayRecommend = localStorage.getItem('displayRecommend')
   const displayRecommendRateLimit = getSetting('displayRecommendRateLimit', {
     rate: 7,
@@ -101,12 +99,8 @@ $( document ).ready(function() {
     $('body').width(windowWidth)
   }, 100);
 
-  if (unreadCount > 0) {
-    $("#unreadCount").text(unreadCount).fadeIn()
-  }
-
   // 查询推荐设置
-  $.getJSON("https://teaclub.zaoshu.so/recommend/settings", function (json) {
+  $.getJSON("https://teaclub.zaoshu.so/recommend/settings?buildid={{buildid}}&browser={{browser}}&app=teaclub", function (json) {
     if (json.display) {
       localStorage.setItem('displayRecommend', json.display)
     }

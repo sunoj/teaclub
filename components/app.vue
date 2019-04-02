@@ -174,7 +174,7 @@
         <div class="weui-navbar">
           <div :class="`weui-navbar__item ${contentType == 'messages' ? 'weui-bar__item_on' : ''}`" @click="switchContentType('messages')">
             最近通知
-            <span id="unreadCount" class="weui-badge">0</span>
+            <span class="weui-badge" v-if="unreadCount > 0">{{unreadCount}}</span>
           </div>
           <div :class="`weui-navbar__item zaoshu-tab ${contentType == 'discounts' ? 'weui-bar__item_on' : ''}`" @click="switchContentType('discounts')">
             <img src="../static/image/zaoshu.png" alt="" class="zaoshu-icon">
@@ -337,12 +337,12 @@ Vue.directive("autoSave", {
   }
 });
 
-import laoding from "./laoding.vue";
+import loading from "./loading.vue";
 import discounts from "./discounts.vue";
 
 export default {
   name: "App",
-  components: { laoding, discounts },
+  components: { loading, discounts },
   data() {
     return {
       taskList: [],
@@ -359,6 +359,7 @@ export default {
         versionCompare(getSetting("changelog_version", "2.0"), "{{version}}") <
         0,
       hiddenPromotionIds: getSetting("hiddenPromotionIds", []),
+      unreadCount: getSetting("unreadCount", null),
       selectedTab: null,
       scienceOnline: false,
       newVersion: getSetting("newVersion", null),
@@ -411,10 +412,7 @@ export default {
           this.orders = orders;
           break;
         case "new_message":
-          let lastUnreadCount = $("#unreadCount").text();
-          $("#unreadCount")
-            .text(Number(lastUnreadCount) + 1)
-            .fadeIn();
+          this.unreadCount = this.unreadCount + 1
           this.messages = makeupMessages(JSON.parse(message.data));
           break;
         case "loginState_updated":
@@ -442,6 +440,7 @@ export default {
       switch (type) {
         case "messages":
           this.getMessages()
+          this.readMessages()
           break;
         case "discounts":
           this.readDiscounts()
@@ -548,6 +547,14 @@ export default {
     },
     selectType: function(type) {
       this.selectedTab = type;
+    },
+    readMessages: function () {
+      this.unreadCount = 0
+      chrome.runtime.sendMessage({
+        text: "clearUnread"
+      }, function (response) {
+        console.log("Response: ", response);
+      });
     },
     readDiscounts: function() {
       this.newDiscounts = false;

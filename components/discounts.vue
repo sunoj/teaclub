@@ -39,11 +39,8 @@
         >关注</a>
       </div>
       <div class="search" v-else>
-        <input v-model="keyword" placeholder="请输入关键词" v-on:keyup.enter="search"/>
-        <i v-if="showClear"
-          class="circle-close"
-          @click="clear"
-        >&times;</i>
+        <input v-model="keyword" placeholder="请输入关键词" v-on:keyup.enter="search">
+        <i v-if="showClear" class="circle-close" @click="clear">&times;</i>
       </div>
     </div>
     <div class="discount-list" v-if="discountList">
@@ -57,13 +54,16 @@
             <span class="discount_price">{{discount.price}}</span>
           </a>
           <div class="description">
-            <img
-              v-if="discount.photo"
-              :src="`${discount.photo}`"
-              @error.once="backup_picture($event)"
-              class="discount-photo backup_picture"
-              :alt="discount.title"
-            >
+            <a :href="`${discount.goodLink}`" target="_blank">
+              <img
+                v-if="discount.photo"
+                :src="`${discount.photo}`"
+                @error.once="backup_picture($event)"
+                width="75"
+                class="discount-photo backup_picture"
+                :alt="discount.title"
+              >
+            </a>
             <p>{{discount.description}}</p>
           </div>
           <div class="tags">
@@ -100,8 +100,8 @@
         <p class="tips">商家自荐/优惠爆料可联系微信：cindywchat</p>
       </div>
     </div>
-    <div class="laoding" v-else>
-      <laoding/>
+    <div class="loading" v-else>
+      <loading/>
     </div>
   </div>
 </template>
@@ -109,11 +109,11 @@
 <script>
 import { DateTime } from "luxon";
 import { getSetting, readableTime } from "../static/utils";
-import laoding from "./laoding.vue";
+import loading from "./loading.vue";
 
 export default {
   name: "discounts",
-  components: { laoding },
+  components: { loading },
   data() {
     return {
       followedTagIds: getSetting("followedTagIds", []),
@@ -134,8 +134,8 @@ export default {
         this.followedTagIds.indexOf(this.selectTag.id) > -1
       );
     },
-    showClear: function () {
-      return this.keyword && this.keyword.length > 0
+    showClear: function() {
+      return this.keyword && this.keyword.length > 0;
     }
   },
   methods: {
@@ -161,12 +161,12 @@ export default {
     },
     search: async function() {
       this.getDiscounts({
-        keyword: this.keyword,
+        keyword: this.keyword
       });
     },
     clear: async function() {
-      this.keyword = null
-      this.switchTab('featured')
+      this.keyword = null;
+      this.switchTab("featured");
     },
     filterByTag: async function(tag) {
       this.discountTab = null;
@@ -271,6 +271,7 @@ export default {
 
 .tabs-link.is-active {
   font-weight: 600;
+  color: #921714;
 }
 
 .tabs-link.is-active::after {
@@ -287,6 +288,9 @@ export default {
   text-overflow: ellipsis;
   width: 55%;
   height: 26px;
+  display: -webkit-box;
+  max-height: 26px;
+  -webkit-line-clamp: 1;
 }
 .tag {
   font-size: 12px;
@@ -306,7 +310,8 @@ export default {
   z-index: 10;
 }
 
-.select-tag, .search {
+.select-tag,
+.search {
   width: 230px;
   float: right;
   line-height: 50px;
@@ -315,7 +320,7 @@ export default {
   position: relative;
 }
 
-.search input{
+.search input {
   -webkit-appearance: none;
   background-color: #fff;
   background-image: none;
@@ -329,18 +334,18 @@ export default {
   line-height: 30px;
   outline: none;
   padding: 0 15px;
-  transition: border-color .2s cubic-bezier(.645,.045,.355,1);
+  transition: border-color 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
   width: 70%;
   margin-top: 12px;
   margin-right: 6px;
 }
 
 .search input:focus {
-    outline: none;
-    border-color: #409eff;
+  outline: none;
+  border-color: #409eff;
 }
 
-.search .circle-close{
+.search .circle-close {
   position: absolute;
   right: 12px;
   color: #ccc;
@@ -348,7 +353,7 @@ export default {
   cursor: pointer;
 }
 
-.tag-box{
+.tag-box {
   width: 140px;
   text-align: right;
   float: left;
@@ -381,7 +386,96 @@ export default {
   overflow-y: auto;
   height: 465px;
 }
-.laoding {
+.loading {
   margin-top: 45px;
+}
+
+.discount-list li {
+  display: block;
+}
+
+.discount-list h5 {
+  padding: 0.2em 1em;
+  background: #f3f3f3;
+}
+
+.discount {
+  border-bottom: 1px solid #eee;
+  padding: 12px 8px;
+}
+
+.discount.pinned {
+  background-color: #fff7e0;
+}
+
+.discount .title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  max-height: 36px;
+  -webkit-line-clamp: 2;
+  -moz-box-orient: vertical;
+  -webkit-box-orient: vertical;
+  padding: 5px;
+  line-height: 22px;
+  font-size: 15px;
+  font-weight: 500;
+}
+.discount .description {
+  display: flex;
+  padding: 15px 5px;
+}
+
+.discount .discount-photo {
+  width: 75px;
+  height: 75px;
+}
+
+.discount_price {
+  color: #f04848;
+  font-weight: bold;
+}
+
+.discount .time {
+  font-size: 12px;
+}
+
+.discount .description p {
+  display: inline-block;
+  font-size: 13px;
+  color: #666;
+  width: 340px;
+  padding-left: 10px;
+  max-height: 75px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -moz-box-orient: vertical;
+  -webkit-box-orient: vertical;
+  line-height: 1.5;
+}
+
+.discount .merchant {
+  height: 15px;
+  line-height: 15px;
+  display: inline-block;
+  vertical-align: middle;
+  margin-top: -4px;
+}
+
+.discount .get-coupon {
+  font-size: 12px;
+  padding: 0.3em;
+}
+
+.discount .weui-cell__ft {
+  margin-top: -25px;
+  padding-bottom: 5px;
+}
+
+.discount a.go-buy:hover {
+  color: #fff;
+  background: #149813;
 }
 </style>
