@@ -46,13 +46,14 @@
     <div class="discount-list" v-if="discountList">
       <div class="discounts-box" v-for="discount in discountList" :key="discount.id">
         <div :class="discount.pinned ? 'discount pinned' : 'discount'">
-          <a class="title" :href="`${discount.goodLink}`" target="_blank">
+          <div class="title" @mouseover="discount.focus = true" @mouseout="discount.focus = false">
             <span class="merchant" v-if="discount.merchant">
               <img :src="discount.merchant.icon" :alt="discount.merchant.name">
             </span>
-            {{discount.title}}
+            <a :href="`${discount.goodLink}`" target="_blank">{{discount.title}}</a>
             <span class="discount_price">{{discount.price}}</span>
-          </a>
+            <report :discount="discount"></report>
+          </div>
           <div class="description">
             <a :href="`${discount.goodLink}`" target="_blank">
               <img
@@ -101,7 +102,7 @@
       </div>
     </div>
     <div class="loading" v-else>
-      <loading/>
+      <loading></loading>
     </div>
   </div>
 </template>
@@ -110,10 +111,11 @@
 import { DateTime } from "luxon";
 import { getSetting, readableTime } from "../static/utils";
 import loading from "./loading.vue";
+import report from "./report.vue";
 
 export default {
   name: "discounts",
-  components: { loading },
+  components: { loading, report },
   data() {
     return {
       followedTagIds: getSetting("followedTagIds", []),
@@ -154,6 +156,7 @@ export default {
         discount.displayTime = readableTime(
           DateTime.fromISO(discount.createdAt)
         );
+        discount.focus = false
         return discount;
       });
       localStorage.setItem("readDiscountAt", new Date());
@@ -180,6 +183,7 @@ export default {
         discount.displayTime = readableTime(
           DateTime.fromISO(discount.createdAt)
         );
+        discount.focus = false
         return discount;
       });
       localStorage.setItem("readDiscountAt", new Date());
@@ -402,6 +406,7 @@ export default {
 .discount {
   border-bottom: 1px solid #eee;
   padding: 12px 8px;
+  position: relative;
 }
 
 .discount.pinned {

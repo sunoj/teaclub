@@ -260,7 +260,7 @@ import Vue from "vue";
 
 import { DateTime } from "luxon";
 import { getLoginState } from "../static/account";
-import { tasks, frequencyOptionText, findJobPlatform } from "../static/tasks";
+import { tasks, frequencyOptionText, getTasks } from "../static/tasks";
 import { getSetting, versionCompare, readableTime } from "../static/utils";
 import { stateText, recommendServices } from "../static/variables";
 
@@ -490,29 +490,7 @@ export default {
     },
     // 任务列表
     getTaskList: function() {
-      this.taskList = _.map(_.reject(tasks, ['hide', true]), (task) => {
-        task.last_run_at = getSetting(`task-${task.id}_lasttime`, null)
-        task.frequencySetting = getSetting(`task-${task.id}_frequency`, task.frequency)
-        task.last_run_description = task.last_run_at ?'上次运行： ' + readableTime(DateTime.fromMillis(Number(task.last_run_at))) : '从未执行'
-        // 如果是签到任务，则读取签到状态
-        if (task.checkin) {
-          let checkinRecord = getSetting('checkin_' + task.key, null)
-          if (checkinRecord && checkinRecord.date == DateTime.local().toFormat("o")) {
-            task.checked = true
-            task.checkin_description = '完成于：' + readableTime(DateTime.fromISO(checkinRecord.time)) + ( checkinRecord.value ? '，领到：' + checkinRecord.value : '')
-          }
-        }
-        // 选择运行平台
-        task.platform = findJobPlatform(task)
-        if (!task.url) {
-          task.url = task.platform ? task.src[task.platform] : task.src[task.type[0]]
-        }
-        if (!task.platform) {
-          task.suspended = true
-          task.platform = task.type[0]
-        }
-        return task
-      })
+      this.taskList = getTasks()
     },
     // 处理登录状态
     dealWithLoginState: function() {

@@ -2,7 +2,7 @@ $ = window.$ = window.jQuery = require('jquery')
 import * as _ from "lodash"
 import Logline from 'logline'
 import {DateTime} from 'luxon'
-import {priceProUrl, tasks, mapFrequency, findJobPlatform} from './tasks'
+import {tasks, mapFrequency, getTasks, getTask} from './tasks'
 import {rand, getSetting} from './utils'
 import {getLoginState} from './account'
 
@@ -57,10 +57,10 @@ chrome.runtime.onInstalled.addListener(function (object) {
 
 
 var popularPhoneUA = [
-  'Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1',
-  'Mozilla/5.0 (iPhone; CPU iPhone OS 9_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/10.2 Mobile/15E148 Safari/604.1',
-  'Mozilla/5.0 (iPhone9,4; U; CPU iPhone OS 10_0_1 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) Version/10.0 Mobile/14A403 Safari/602.1',
-  'Mozilla/5.0 (Linux; Android 6.0.1; SM-G920V Build/MMB29K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.98 Mobile Safari/537.36'
+  'Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1 AliApp(TB-PD/3.0.2)',
+  'Mozilla/5.0 (iPhone; CPU iPhone OS 9_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/10.2 Mobile/15E148 Safari/604.1 AliApp(TB-PD/3.0.2)',
+  'Mozilla/5.0 (iPhone9,4; U; CPU iPhone OS 10_0_1 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) Version/10.0 Mobile/14A403 Safari/602.1 AliApp(TB-PD/3.0.2)',
+  'Mozilla/5.0 (Linux; Android 6.0.1; SM-G920V Build/MMB29K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.98 Mobile Safari/537.36 AliApp(TB-PD/2.6.5)'
 ];
 chrome.webRequest.onBeforeSendHeaders.addListener(
   function (details) {
@@ -136,52 +136,35 @@ function saveJobStack(jobStack) {
   localStorage.setItem('jobStack', JSON.stringify(jobStack));
 }
 
-function getTasks() {
-  return _.map(tasks, (task) => {
-    let job_run_last_time = localStorage.getItem('task-' + task.id + '_lasttime')
-    task.last_run_at = job_run_last_time ? parseInt(job_run_last_time) : null
-    task.frequency = getSetting('task-' + task.id + '_frequency') || task.frequency
-    // 如果是签到任务，则读取签到状态
-    if (task.checkin) {
-      let checkinRecord = getSetting('checkin_' + task.key, null)
-      if (checkinRecord && checkinRecord.date == DateTime.local().toFormat("o")) {
-        task.checked = true
-      }
-    }
-    return task
-  })
-}
-
 // 寻找乔布斯
 function findJobs() {
   let jobStack = getSetting('jobStack', [])
   let jobList = getTasks()
-  jobList.forEach(function(job) {
-    let platform = findJobPlatform(job)
-    if (!platform) {
-      return console.log(job.title, '由于账号未登录已暂停运行')
+  jobList.forEach(function(task) {
+    if (task.suspended) {
+      return console.log(task.title, '由于账号未登录已暂停运行')
     }
-    switch(job.frequency){
+    switch(task.frequency){
       case '2h':
         // 如果从没运行过，或者上次运行已经过去超过2小时，那么需要运行
-        if (!job.last_run_at || (DateTime.local() > DateTime.fromMillis(job.last_run_at).plus({ hours: 2 }))) {
-          jobStack.push(job.id)
+        if (!task.last_run_at || (DateTime.local() > DateTime.fromMillis(task.last_run_at).plus({ hours: 2 }))) {
+          jobStack.push(task.id)
         }
         break;
       case '5h':
         // 如果从没运行过，或者上次运行已经过去超过5小时，那么需要运行
-        if (!job.last_run_at || (DateTime.local() > DateTime.fromMillis(job.last_run_at).plus({ hours: 5 }))) {
-          jobStack.push(job.id)
+        if (!task.last_run_at || (DateTime.local() > DateTime.fromMillis(task.last_run_at).plus({ hours: 5 }))) {
+          jobStack.push(task.id)
         }
         break;
       case 'daily':
         // 如果从没运行过，或者上次运行不在今天，或者是签到任务但未完成
-        if (!job.last_run_at || !(DateTime.local().hasSame(DateTime.fromMillis(job.last_run_at), 'day')) || (job.checkin && !job.checked)) {
-          jobStack.push(job.id)
+        if (!task.last_run_at || !(DateTime.local().hasSame(DateTime.fromMillis(task.last_run_at), 'day')) || (task.checkin && !task.checked)) {
+          jobStack.push(task.id)
         }
         break;
       default:
-        console.log('ok, never run ', job.title)
+        console.log('ok, never run ', task.title)
     }
   });
   saveJobStack(jobStack)
@@ -208,7 +191,7 @@ function runJob(taskId, force = false) {
   if (DateTime.local().hour < 6 && !force) {
     return console.log('Silent Night')
   }
-  log('background', "run job", {
+  log('background', new Date(), "run job", {
     jobId: taskId,
     force: force
   })
@@ -219,14 +202,12 @@ function runJob(taskId, force = false) {
       taskId = jobStack.shift();
       saveJobStack(jobStack)
     } else {
-      return log('info', '好像没有什么事需要我做...')
+      return log('info', new Date(), '好像没有什么事需要我做...')
     }
   }
   let task = getTask(taskId)
 
-  let platform = findJobPlatform(task)
-
-  if (!platform && !force) {
+  if (task.suspended && !force) {
     return log('job', task.title, '由于账号未登录已暂停运行')
   }
   if (task && (task.frequency != 'never' || force)) {
@@ -336,10 +317,13 @@ $( document ).ready(function() {
 
   // 载入显示未读数量
   updateUnreadCount()
+
+  // 加载任务参数
+  loadSettingsToLocalStorage('teaclub:task-parameters')
 })
 
 
-function openWebPageAsMoblie(url) {
+function openWebPageAsMobile(url) {
   chrome.windows.create({
     width: 420,
     height: 800,
@@ -435,6 +419,12 @@ function updateIcon() {
 
 // 保存登陆状态
 function saveLoginState(loginState) {
+  let previousState = getLoginState()
+  // 如果登录状态从失败转换到了在线
+  if (previousState.class != 'alive' && loginState.state == "alive") {
+    console.log('user account turn alive')
+    findJobs()
+  }
   localStorage.setItem('login-state_' + loginState.type, JSON.stringify({
     time: new Date(),
     message: loginState.content || loginState.message,
@@ -463,8 +453,8 @@ function sendChromeNotification(id, content) {
 function runTask(msg) {
   let task = getTask(msg.taskId)
   // set 临时运行
-  localStorage.setItem('temporary_job' + taskId + '_frequency', 'onetime');
-  runJob(taskId, true)
+  localStorage.setItem('temporary_job' + task.id + '_frequency', 'onetime');
+  runJob(task.id, true)
   if (!msg.hideNotice) {
     sendChromeNotification(new Date().getTime().toString(), {
       type: "basic",
@@ -473,7 +463,6 @@ function runTask(msg) {
       iconUrl: 'static/image/128.png'
     })
   }
-
 }
 
 function markCheckinStatus(msg) {
@@ -486,6 +475,12 @@ function markCheckinStatus(msg) {
       time: new Date(),
       value: msg.value
     }
+    if (msg.month) {
+      localStorage.setItem(`order-fliggy-${msg.month}`, 'Y');
+    }
+    if (msg.orderId) {
+      localStorage.setItem(`order-fliggy_${msg.orderId}`, 'Y');
+    }
     if (currentStatus && currentStatus.date == DateTime.local().toFormat("o")) {
       console.log('已经记录过今日签到状态了')
     } else {
@@ -493,10 +488,6 @@ function markCheckinStatus(msg) {
       return data
     }
   }
-}
-
-function getTask(taskId) {
-  return _.find(tasks, ["id", taskId.toString()])
 }
 
 function updateRunStatus(msg) {
@@ -517,13 +508,20 @@ function updateRunStatus(msg) {
   }
 }
 
+// 加载任务参数
+function loadSettingsToLocalStorage(key) {
+  $.getJSON(`https://teaclub.zaoshu.so/setting/${key}`, function (json) {
+    saveSetting(key, json)
+  })
+}
+
 // 处理消息通知
 chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
   if (!msg.action) {
     msg.action = msg.text
   }
   let loginState = getLoginState()
-  console.log('msg', msg)
+  log('msg', new Date(), msg);
   switch(msg.action){
     // 保存登陆状态
     case 'saveLoginState':
@@ -551,11 +549,25 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       }
       sendResponse(setting)
       break;
-    case 'openUrlAsMoblie':
-      openWebPageAsMoblie(msg.url)
+    // 领取订单的里程
+    case 'getOrderFliggy':
+      let orderStatus = localStorage.getItem(`order-fliggy_${msg.orderId}`)
+      let month = new Date().getMonth()
+      let monthStatus = localStorage.getItem(`order-fliggy-${month}`)
+      console.log('getOrderFliggy', msg.orderId, orderStatus, monthStatus)
+      // 如果没有领取过
+      if (!(orderStatus && orderStatus == 'Y') && !(monthStatus && monthStatus == 'Y')) {
+        let url = `https://www.fliggy.com/mytrip/?tvm=tcd&orderId=${msg.orderId}`
+        setTimeout(() => {
+          openByIframe(url, 'temporary')
+        }, rand(20) * 1000);
+      }
+      sendResponse({
+        working: true
+      })
       break;
-    case 'openPricePro':
-      openWebPageAsMoblie(priceProUrl)
+    case 'openUrlAsMobile':
+      openWebPageAsMobile(msg.url)
       break;
     case 'option':
       localStorage.setItem(''+msg.title, msg.content);
@@ -569,16 +581,18 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       break;
     // 签到通知
     case 'checkin_notice':
-      var mute_checkin = getSetting('mute_checkin')
+      let mute_checkin = getSetting('mute_checkin')
       if (mute_checkin && mute_checkin == 'checked' && !msg.test) {
         console.log('checkin', msg)
       } else {
         let icon = 'static/image/coin.png'
+        let type = "basic"
         if (msg.type == 'mileage') {
           icon = 'static/image/mileage.png'
+          type = 'fliggy'
         }
         sendChromeNotification( new Date().getTime().toString() + '_' + msg.reward, {
-          type: "basic",
+          type: type,
           title: msg.title,
           message: msg.content,
           iconUrl: icon
@@ -708,7 +722,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
   }
 
   if (msg.text != 'saveAccount') {
-    log('message', msg.text, msg);
+    log('message', new Date(), msg.text, msg);
   }
   // 如果消息 300ms 未被回复
   return true

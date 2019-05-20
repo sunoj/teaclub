@@ -22,22 +22,6 @@ new Vue({
   components: { App }
 })
 
-// 接收消息
-chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
-  switch (message.action) {
-    case 'new_message':
-      let lastUnreadCount = $("#unreadCount").text()
-      $("#unreadCount").text(Number(lastUnreadCount) + 1).fadeIn()
-      popupVM.messages = makeupMessages(JSON.parse(message.data))
-      break;
-    case 'loginState_updated':
-      dealWithLoginState()
-      break;
-    default:
-      break;
-  }
-});
-
 function showJEvent(rateLimit) {
   if (rateLimit) {
     let today = DateTime.local().toFormat("o")
@@ -186,7 +170,7 @@ $( document ).ready(function() {
 
   $(document).on("click", ".openMobilePage", function () {
     chrome.runtime.sendMessage({
-      action: "openUrlAsMoblie",
+      action: "openUrlAsMobile",
       url: $(this).data('url')
     }, function (response) {
       console.log("Response: ", response);

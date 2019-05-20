@@ -174,7 +174,8 @@ async function findCoupon(disable_find_coupon) {
   const urlParams = new URLSearchParams(window.location.search);
   const sku = urlParams.get('id') || urlParams.get('skuId')
   const title = document.title.split('-')[0]
-  let response = await fetch(`https://teaclub.zaoshu.so/coupon/query?sku=${sku}&keyword=${title}`)
+  const merchant = window.location.host.indexOf('item.taobao.com') > -1 ? 'taobao' : 'tmall'
+  let response = await fetch(`https://teaclub.zaoshu.so/coupon/query?sku=${sku}&keyword=${title}&merchant=${merchant}`)
   try {
     let coupon = await response.json();
     console.log('coupon', coupon)
@@ -194,17 +195,18 @@ async function findCoupon(disable_find_coupon) {
   }
 }
 
-function markCheckinStatus(task, value, cb) {
+function markCheckinStatus(task, data, cb) {
   chrome.runtime.sendMessage({
     action: "markCheckinStatus",
     taskId: task.id,
-    value: value,
-    status: "signed"
+    status: "signed",
+    ...data
   }, function (response) {
     console.log('markCheckinStatus response', response)
     if (cb && response) { cb() }
   });
 }
+
 
 // 自动登录
 function autoLogin() {
@@ -227,23 +229,39 @@ function autoLogin() {
 // *********
 
 // 飞猪里程
-function markFliggyCheckin(task) {
+function markFliggyCheckin(task, orderId) {
   const signRes = document.getElementsByClassName("tlc-title")[0] && document.getElementsByClassName("tlc-title")[0].innerText
-  const value = document.getElementsByClassName("tlc-title")[0] && document.getElementsByClassName("tlc-title")[0].getElementsByTagName("span")[0].innerText
+  const value = (document.getElementsByClassName("tlc-title")[0] && document.getElementsByClassName("tlc-title")[0].getElementsByTagName("span")[0]) ? document.getElementsByClassName("tlc-title")[0].getElementsByTagName("span")[0].innerText : null
+  console.log('markFliggyCheckin', task, orderId, signRes, value)
   if (signRes && (signRes.indexOf("获得") > -1)) {
-    markCheckinStatus(task, value + '里程', () => {
+    markCheckinStatus(task, {
+      value: value + '里程',
+      orderId: orderId
+    }, () => {
       chrome.runtime.sendMessage({
         action: "checkin_notice",
         value: value,
         reward: 'mileage',
-        title: "茶友会自动为您签到领里程",
+        title: orderId ? "茶友会自动为您签订单奖励里程" : "茶友会自动为您签到领里程",
         content: "恭喜您获得了" + value + '个里程奖励'
       }, function (response) {
         console.log("Response: ", response);
       })
     })
   } else if (signRes && (signRes.indexOf("今日已领") > -1)) {
-    markCheckinStatus(task, value)
+    markCheckinStatus(task, {
+      value
+    })
+  } else if (signRes && (signRes.indexOf("已领取过") > -1) && orderId) {
+    markCheckinStatus(task, {
+      value,
+      orderId: orderId
+    })
+  } else if (signRes && (signRes.indexOf("本月您已领满") > -1)) {
+    markCheckinStatus(task, {
+      value,
+      month: new Date().getMonth(),
+    })
   }
 }
 
@@ -264,12 +282,12 @@ function fliggyCheckin(setting) {
     } else if (signInButton && signInButton.innerText && signInButton.innerText.indexOf("签到") > -1) {
       simulateClick(signInButton)
       // 监控结果
-      setTimeout(function () {
+      observeDOM(document.body, function () {
         markFliggyCheckin({
           key: 'fliggy-mytrip',
           id: 2
         })
-      }, 1000)
+      })
     }
   }
 }
@@ -285,12 +303,12 @@ function fliggyCheckin2(setting) {
     if (signInButton && signInButton.innerText && signInButton.innerText == "确    认") {
       simulateClick(signInButton)
       // 监控结果
-      setTimeout(function () {
+      observeDOM(document.body, function () {
         markFliggyCheckin({
           key: 'fliggy-tvip',
           id: 3
         })
-      }, 1000)
+      })
     } else {
       if (signInButton && signInButton.innerText == "已签到") {
         markCheckinStatus({
@@ -325,12 +343,12 @@ function fliggyCheckin3(setting) {
         simulateClick(signInButton, true)
       }, 500);
       // 监控结果
-      setTimeout(function () {
+      observeDOM(document.body, function () {
         markFliggyCheckin({
           key: 'rx-member',
           id: 4
         })
-      }, 1000)
+      })
     } else {
       if (signInReward && signInReward.innerText) {
         markCheckinStatus({
@@ -342,9 +360,34 @@ function fliggyCheckin3(setting) {
   }
 }
 
+function fliggyCheckin6(setting) {
+  if (setting != 'never') {
+    weui.toast('茶友会运行中', 1000);
+    chrome.runtime.sendMessage({
+      action: "updateRunStatus",
+      taskId: 6
+    })
+    const urlParams = new URLSearchParams(window.location.search);
+    let orderId = urlParams.get('orderId')
+    let signInButton = document.getElementsByClassName("J_makesurebuttontvip")[0]
+    if (signInButton && signInButton.innerText && signInButton.innerText == "确    认") {
+      simulateClick(signInButton)
+      // 监控结果
+      observeDOM(document.body, function () {
+        markFliggyCheckin({
+          key: 'order-fliggy',
+          id: 6
+        }, orderId)
+      })
+    }
+  }
+}
+
 // 淘金币
 function markCoinCheckin(task, value) {
-  markCheckinStatus(task, value + '淘金币', () => {
+  markCheckinStatus(task, {
+    value: value + '淘金币'
+  }, () => {
     chrome.runtime.sendMessage({
       action: "checkin_notice",
       value: value,
@@ -398,6 +441,35 @@ function coinCheckin(setting) {
   }
 }
 
+// 5: 天天抽奖
+function coinLottery(setting) {
+  if (setting != 'never') {
+    weui.toast('茶友会运行中', 1000);
+    chrome.runtime.sendMessage({
+      action: "updateRunStatus",
+      taskId: 5
+    })
+    let signInButton = document.getElementsByClassName("button_text_size")[0]
+    if (signInButton && signInButton.innerText && signInButton.innerText == "抽奖") {
+      simulateClick(signInButton)
+      // 监控结果
+      setTimeout(function () {
+        markFliggyCheckin({
+          key: 'coin-lottery',
+          id: 5
+        })
+      }, 1000)
+    } else {
+      if (signInButton && signInButton.innerText == "已签到") {
+        markCheckinStatus({
+          key: 'coin-lottery',
+          id: 5
+        })
+      }
+    }
+  }
+}
+
 
 // 主任务
 function CheckDom() {
@@ -410,7 +482,7 @@ function CheckDom() {
     `, 'body')
   }
   // 判断登录状态
-  if (document.getElementById("mtb-nickname") && document.getElementById("mtb-nickname").value) {
+  if (document.getElementById("mtb-nickname") && document.getElementById("mtb-nickname").value || document.getElementsByClassName("J_MemberNick")[0]) {
     chrome.runtime.sendMessage({
       action: "saveLoginState",
       state: "alive",
@@ -455,6 +527,32 @@ function CheckDom() {
       });
     }
   }
+  // 订单
+  if (document.title == "已买到的宝贝" && window.location.host == 'buyertrade.taobao.com') {
+    let orderElements = document.getElementsByClassName("bought-wrapper-mod__head-info-cell___29cDO")
+    let time = 0
+    // 只处理最近五个订单
+    if (orderElements && orderElements.length > 5) {
+      orderElements = Array.prototype.slice.call(orderElements).slice(0, 5);
+    }
+    Array.prototype.slice.call(orderElements).forEach(function(orderElement) {
+      if (orderElement.lastElementChild && orderElement.lastElementChild.lastElementChild) {
+        let orderId = orderElement.lastElementChild.lastElementChild.innerText
+        if (orderId) {
+          setTimeout(function () {
+            chrome.runtime.sendMessage({
+              action: "getOrderFliggy",
+              orderId: orderId
+            }, function(response) {
+              console.log("Response: ", response);
+            });
+          }, time)
+          time += 15000;
+        }
+      }
+    });
+  }
+
   // 登录页面
   if (window.location.host == 'login.m.taobao.com') {
     setTimeout(() => {
@@ -471,11 +569,15 @@ function CheckDom() {
   }
   // 飞猪签到
   if (document.title == "我的旅行" && window.location.host == 'www.fliggy.com') {
-    if (document.getElementsByClassName("J_mySignInBtn")[0]) {
-      getSetting('task-2_frequency', fliggyCheckin)
-    } else if (document.getElementsByClassName("J_makesurebuttontvipBtn")[0]) {
-      getSetting('task-3_frequency', fliggyCheckin2)
-    }
+    setTimeout(() => {
+      if (document.getElementsByClassName("J_mySignInBtn")[0]) {
+        getSetting('task-2_frequency', fliggyCheckin)
+      } else if (document.getElementsByClassName("J_makesurebuttontvipBtn")[0]) {
+        getSetting('task-3_frequency', fliggyCheckin2)
+      } else if (document.getElementsByClassName("J_makesurebuttontvip")[0]) {
+        getSetting('task-6_frequency', fliggyCheckin6)
+      }
+    }, 3000);
   };
   if (document.title == "飞猪·会员中心" && window.location.host == 'h5.m.taobao.com') {
     getSetting('task-4_frequency', fliggyCheckin3)
@@ -495,6 +597,10 @@ function CheckDom() {
     }
     getSetting('task-1_frequency', coinCheckin)
   }
+  // 天天抽奖
+  if (window.location.host == 'market.m.taobao.com' && window.location.pathname == "/apps/market/tjb/core-member2.html" ) {
+    getSetting('task-5_frequency', coinLottery)
+  }
 }
 
 
@@ -505,7 +611,7 @@ $( document ).ready(function() {
     setTimeout( function(){
       console.log('茶友会开始执行任务');
       CheckDom()
-    }, 1500)
+    }, 2500)
   }
 });
 
