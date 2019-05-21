@@ -3,7 +3,7 @@ import * as _ from "lodash"
 import Logline from 'logline'
 import {DateTime} from 'luxon'
 import {tasks, mapFrequency, getTasks, getTask} from './tasks'
-import {rand, getSetting} from './utils'
+import {rand, getSetting, saveSetting} from './utils'
 import {getLoginState} from './account'
 
 Logline.using(Logline.PROTOCOL.INDEXEDDB)
@@ -45,6 +45,7 @@ chrome.runtime.onInstalled.addListener(function (object) {
     if (!uaType) {
       localStorage.setItem('uaType', 1);
     }
+    localStorage.setItem('oldUser', 'Y')
     console.log("已经安装")
   } else {
     localStorage.setItem('installed', 'Y');
@@ -90,15 +91,15 @@ try {
 
 chrome.alarms.onAlarm.addListener(function( alarm ) {
   log('background', "onAlarm", alarm)
-  var jobId = alarm.name.split('_')[1]
+  let taskId = alarm.name.split('_')[1]
   switch(true){
     // 计划任务
     case alarm.name.startsWith('runScheduleJob'):
-      runJob(jobId, true)
+      runJob(taskId, true)
       break;
     // 定时任务
     case alarm.name.startsWith('runJob'):
-      runJob(jobId)
+      runJob(taskId)
       break;
     // 周期运行（10分钟）
     case alarm.name == 'cycleTask':
@@ -107,14 +108,14 @@ chrome.alarms.onAlarm.addListener(function( alarm ) {
       runJob()
       break;
     case alarm.name.startsWith('clearIframe'):
-      resetIframe(jobId || 'iframe')
+      resetIframe(taskId || 'iframe')
       break;
     case alarm.name.startsWith('destroyIframe'):
-      $("#" + jobId).remove();
+      $("#" + taskId).remove();
       break;
     case alarm.name.startsWith('closeTab'):
       try {
-        chrome.tabs.get(jobId, (tab) => {
+        chrome.tabs.get(taskId, (tab) => {
           if (tab) {
             chrome.tabs.remove(tab.id)
           }
@@ -207,7 +208,8 @@ function runJob(taskId, force = false) {
   }
   let task = getTask(taskId)
 
-  if (task.suspended && !force) {
+  // 如果任务暂停或者已经完成
+  if ((task.suspended || task.checked) && !force) {
     return log('job', task.title, '由于账号未登录已暂停运行')
   }
   if (task && (task.frequency != 'never' || force)) {
@@ -219,13 +221,13 @@ function runJob(taskId, force = false) {
         if (scheduledHour > hour) {
           let scheduledTime = DateTime.local().set({
             hour: scheduledHour,
-            minute: rand(5),
+            minute: rand(2) - 1,
             second: rand(55)
           }).valueOf()
           chrome.alarms.create('runScheduleJob_' + task.id, {
             when: scheduledTime
           })
-          return log('background', "schedule job created", {
+          log('background', "schedule job created", {
             job: task,
             time: scheduledHour,
             when: scheduledTime
@@ -233,17 +235,17 @@ function runJob(taskId, force = false) {
         }
       }
       // 如果当前已经过了最晚的运行时段，则放弃运行
-      return log('background', "pass schedule job", {
+      log('background', "pass schedule job", {
         job: task
       })
     }
     log('background', "run", task)
     if (task.mode == 'iframe') {
-      openByIframe(task.src[platform], 'job')
+      openByIframe(task.url, 'job')
     } else {
       chrome.tabs.create({
         index: 1,
-        url: task.src[platform],
+        url: task.url,
         active: false,
         pinned: true
       }, function (tab) {
@@ -420,11 +422,6 @@ function updateIcon() {
 // 保存登陆状态
 function saveLoginState(loginState) {
   let previousState = getLoginState()
-  // 如果登录状态从失败转换到了在线
-  if (previousState.class != 'alive' && loginState.state == "alive") {
-    console.log('user account turn alive')
-    findJobs()
-  }
   localStorage.setItem('login-state_' + loginState.type, JSON.stringify({
     time: new Date(),
     message: loginState.content || loginState.message,
@@ -434,6 +431,13 @@ function saveLoginState(loginState) {
     action: "loginState_updated",
     data: loginState
   });
+  // 如果登录状态从失败转换到了在线
+  if (previousState.class != 'alive' && loginState.state == "alive") {
+    console.log('user account turn alive')
+    setTimeout(() => {
+      findJobs()
+    }, 5000);
+  }
 }
 
 // 浏览器通知（合并）
@@ -531,6 +535,12 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     case 'getLoginState':
       sendResponse(loginState)
       break;
+    // 打开登录页面
+    case 'openLogin':
+      chrome.tabs.create({
+        url: "https://i.taobao.com/my_taobao.htm"
+      })
+      break;
     // 保存变量值
     case 'setVariable':
       localStorage.setItem(msg.key, JSON.stringify(msg.value));
@@ -552,11 +562,9 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     // 领取订单的里程
     case 'getOrderFliggy':
       let orderStatus = localStorage.getItem(`order-fliggy_${msg.orderId}`)
-      let month = new Date().getMonth()
-      let monthStatus = localStorage.getItem(`order-fliggy-${month}`)
-      console.log('getOrderFliggy', msg.orderId, orderStatus, monthStatus)
+      console.log('getOrderFliggy', msg.orderId, orderStatus)
       // 如果没有领取过
-      if (!(orderStatus && orderStatus == 'Y') && !(monthStatus && monthStatus == 'Y')) {
+      if (!(orderStatus && orderStatus == 'Y')) {
         let url = `https://www.fliggy.com/mytrip/?tvm=tcd&orderId=${msg.orderId}`
         setTimeout(() => {
           openByIframe(url, 'temporary')

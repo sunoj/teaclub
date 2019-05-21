@@ -16,6 +16,9 @@ module.exports = {
     }
     return setting ? setting : defaultValue
   },
+  saveSetting: function (settingKey, value) {
+    return localStorage.setItem(settingKey, JSON.stringify(value))
+  },
   readableTime: function (datetime) {
     if (DateTime.local().hasSame(datetime, 'day')) {
       return '今天 ' + datetime.setLocale('zh-cn').toLocaleString(DateTime.TIME_SIMPLE)

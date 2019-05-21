@@ -67,7 +67,7 @@ const tasks = [
     src: {
       pc: 'https://www.fliggy.com/mytrip/',
     },
-    url: 'https://www.fliggy.com/mytrip/',
+    baseUrl: "https://www.fliggy.com/mytrip/",
     title: '飞猪里程1',
     description: "每日签到领取飞猪里程",
     mode: 'iframe',
@@ -82,7 +82,6 @@ const tasks = [
     src: {
       pc: 'https://www.fliggy.com/mytrip/?tvm=tvip',
     },
-    url: 'https://www.fliggy.com/mytrip/?tvm=tvip',
     title: '飞猪里程2',
     description: "每日签到领取飞猪里程",
     mode: 'iframe',
@@ -113,7 +112,7 @@ let findTaskPlatform = function (task) {
   let loginState = getLoginState()
   let platform = null
   for (var i = 0; i < task.type.length; i++) {
-    if (loginState[task.type[i]].state == 'alive') {
+    if (loginState.class == 'alive') {
       platform = task.type[i];
       break;
     }
@@ -124,36 +123,46 @@ let findTaskPlatform = function (task) {
 let getTask = function (taskId, currentPlatform) {
   let taskParameters = getSetting('teaclub:task-parameters', [])
   let task = tasks.find(t => t.id == taskId.toString());
-  task.platform = findTaskPlatform(task);
-  task.frequency = getSetting(`task-${taskId}_frequency`)
-  task.last_run_at = localStorage.getItem(`task-${task.id}_lasttime`) ? parseInt(localStorage.getItem(`task-${task.id}_lasttime`)) : null
-  task.last_run_description = task.last_run_at ? "上次运行： " + readableTime(DateTime.fromMillis(Number(task.last_run_at))) : "从未执行";
+  let taskStatus = {}
+  taskStatus.platform = findTaskPlatform(task);
+  taskStatus.frequency = getSetting(`task-${taskId}_frequency`, task.frequency)
+  taskStatus.last_run_at = localStorage.getItem(`task-${task.id}_lasttime`) ? parseInt(localStorage.getItem(`task-${task.id}_lasttime`)) : null
+  taskStatus.last_run_description = taskStatus.last_run_at ? "上次运行： " + readableTime(DateTime.fromMillis(Number(taskStatus.last_run_at))) : "从未执行";
 
   // 如果是签到任务，则读取签到状态
   if (task.checkin) {
     let checkinRecord = getSetting(`checkin_${task.key}`, null)
     if (checkinRecord && checkinRecord.date == DateTime.local().toFormat("o")) {
-      task.checked = true
-      task.checkin_description = "完成于：" + readableTime(DateTime.fromISO(checkinRecord.time)) + (checkinRecord.value ? "，领到：" + checkinRecord.value : "");
+      taskStatus.checked = true
+      taskStatus.checkin_description = "完成于：" + readableTime(DateTime.fromISO(checkinRecord.time)) + (checkinRecord.value ? "，领到：" + checkinRecord.value : "");
+    }
+  }
+  // 订单里程任务每月5次
+  if (task.id == "6") {
+    let month = new Date().getMonth()
+    let monthStatus = localStorage.getItem(`order-fliggy-${month}`)
+    if (monthStatus && monthStatus == 'Y') {
+      taskStatus.checked = true
+      taskStatus.checkin_description = "本月已领取五次"
     }
   }
   // 如果限定平台
   if (currentPlatform) {
     if (task.type && task.type.indexOf(currentPlatform) < 0) {
-      task.unavailable = true
+      taskStatus.unavailable = true
     }
   }
   // 选择运行平台
   if (!task.url) {
-    task.url = task.platform ? task.src[task.platform] : task.src[task.type[0]];
+    taskStatus.url = taskStatus.platform ? task.src[taskStatus.platform] : task.src[task.type[0]];
   }
   // 如果任务无可运行平台
-  if (!task.platform) {
-    task.suspended = true;
-    task.platform = task.type[0];
+  if (!taskStatus.platform) {
+    taskStatus.suspended = true;
+    taskStatus.platform = task.type[0];
   }
   let parameters = (taskParameters && taskParameters.length > 0) ? taskParameters.find(t => t.id == taskId.toString()) : {}
-  return Object.assign(task, parameters)
+  return Object.assign(task, parameters, taskStatus)
 }
 
 let getTasks = function (currentPlatform) {

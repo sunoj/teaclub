@@ -26,7 +26,7 @@
                       <a
                         v-if="task.platform == 'm'"
                         class="openMobilePage"
-                        :data-url="task.url"
+                        :data-url="task.baseUrl || task.url"
                       >{{task.title}}</a>
                       <a v-else :href="task.url" target="_blank">{{task.title}}</a>
                     </span>
@@ -249,6 +249,9 @@
         </div>
       </div>
     </div>
+    <div class="dialogs">
+      <guide v-if="showGuide" :login-state="loginState"></guide>
+    </div>
   </div>
 </template>
 
@@ -339,10 +342,11 @@ Vue.directive("autoSave", {
 
 import loading from "./loading.vue";
 import discounts from "./discounts.vue";
+import guide from "./guide.vue";
 
 export default {
   name: "App",
-  components: { loading, discounts },
+  components: { loading, discounts, guide },
   data() {
     return {
       taskList: [],
@@ -364,6 +368,8 @@ export default {
       scienceOnline: false,
       newVersion: getSetting("newVersion", null),
       loginStateDescription: "未能获取登录状态",
+      olduser: getSetting('oldUser', false),
+      showGuideAt: getSetting('showGuideAt', false),
       loginState: {
         default: true,
         m: {
@@ -375,6 +381,15 @@ export default {
       },
       discountTab: "featured"
     };
+  },
+  computed: {
+    showGuide: function() {
+      if (!this.olduser && !this.showGuideAt) {
+        return true
+      } else {
+        return false
+      }
+    }
   },
   mounted: async function() {
     // 准备数据
@@ -496,7 +511,31 @@ export default {
     dealWithLoginState: function() {
       let loginState = getLoginState();
       this.loginState = loginState;
-      this.tasks = this.getTaskList();
+
+      if (loginState.class == "failed") {
+        weui.dialog({
+          title: '淘宝账号登录失效',
+          content: `<p>账号登录失效后，签到任务将无法运行</p>`,
+          className: 'login-failed',
+          buttons: [
+            {
+              label: '去登录',
+              type: 'primary',
+              onClick: function(){
+                chrome.runtime.sendMessage({
+                  action: "openLogin",
+                }, function(response) {
+                  console.log("Response: ", response);
+                });
+              }
+            },
+            {
+              label: '知道了',
+              type: 'default'
+            }
+          ]
+        })
+      }
 
       function getStateDescription(loginState, type) {
         return (

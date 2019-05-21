@@ -84,7 +84,7 @@ $( document ).ready(function() {
   }, 100);
 
   // 查询推荐设置
-  $.getJSON("https://teaclub.zaoshu.so/recommend/settings?buildid={{buildid}}&browser={{browser}}&app=teaclub", function (json) {
+  $.getJSON("https://teaclub.zaoshu.so/setting/teaclub:recommend", function (json) {
     if (json.display) {
       localStorage.setItem('displayRecommend', json.display)
     }

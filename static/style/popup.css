@@ -422,7 +422,7 @@ a.buy-btn:hover {
   display: block;
 }
 
-#dialogs, #changeLogs, #admissionTest {
+#dialogs, #changeLogs{
   display: none;
 }
 
@@ -433,17 +433,13 @@ a.buy-btn:hover {
   vertical-align: middle;
 }
 
-#admissionTest .testbox {
-  display: none;
-}
-
-#admissionTest .weui-dialog__bd {
+.guide .weui-dialog__bd {
   line-height: 1.6;
   max-height: 300px;
   overflow-x: hidden;
 }
 
-#admissionTest .weui-dialog__bd p {
+.guide .weui-dialog__bd p {
   margin-bottom: 1em;
 }
 
