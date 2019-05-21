@@ -26,7 +26,6 @@ const tasks = [
     description: "淘金币每日签到领取",
     mode: 'iframe',
     key: "coin",
-    platform: "m",
     type: ['m'],
     checkin: true,
     frequencyOption: ['daily', 'never'],
@@ -55,7 +54,6 @@ const tasks = [
     description: "淘金币天天抽奖",
     mode: 'iframe',
     key: "coin-lottery",
-    platform: "m",
     type: ['m'],
     checkin: true,
     frequencyOption: ['daily', 'never'],
@@ -111,24 +109,21 @@ const tasks = [
 let findTaskPlatform = function (task) {
   let loginState = getLoginState()
   let platform = null
-  for (var i = 0; i < task.type.length; i++) {
-    if (loginState.class == 'alive') {
-      platform = task.type[i];
-      break;
-    }
+  if (loginState.class == 'alive') {
+    platform = task.type[0];
   }
   return platform
 }
 
 let getTask = function (taskId, currentPlatform) {
   let taskParameters = getSetting('teaclub:task-parameters', [])
-  let task = tasks.find(t => t.id == taskId.toString());
+  let parameters = (taskParameters && taskParameters.length > 0) ? taskParameters.find(t => t.id == taskId.toString()) : {}
+  let task = Object.assign({}, tasks.find(t => t.id == taskId.toString()), parameters)
   let taskStatus = {}
   taskStatus.platform = findTaskPlatform(task);
   taskStatus.frequency = getSetting(`task-${taskId}_frequency`, task.frequency)
   taskStatus.last_run_at = localStorage.getItem(`task-${task.id}_lasttime`) ? parseInt(localStorage.getItem(`task-${task.id}_lasttime`)) : null
   taskStatus.last_run_description = taskStatus.last_run_at ? "上次运行： " + readableTime(DateTime.fromMillis(Number(taskStatus.last_run_at))) : "从未执行";
-
   // 如果是签到任务，则读取签到状态
   if (task.checkin) {
     let checkinRecord = getSetting(`checkin_${task.key}`, null)
@@ -161,8 +156,7 @@ let getTask = function (taskId, currentPlatform) {
     taskStatus.suspended = true;
     taskStatus.platform = task.type[0];
   }
-  let parameters = (taskParameters && taskParameters.length > 0) ? taskParameters.find(t => t.id == taskId.toString()) : {}
-  return Object.assign(task, parameters, taskStatus)
+  return Object.assign(task, taskStatus)
 }
 
 let getTasks = function (currentPlatform) {

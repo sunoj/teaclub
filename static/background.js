@@ -140,8 +140,8 @@ function saveJobStack(jobStack) {
 // 寻找乔布斯
 function findJobs() {
   let jobStack = getSetting('jobStack', [])
-  let jobList = getTasks()
-  jobList.forEach(function(task) {
+  let taskList = getTasks()
+  taskList.forEach(function(task) {
     if (task.suspended) {
       return console.log(task.title, '由于账号未登录已暂停运行')
     }
@@ -437,6 +437,9 @@ function saveLoginState(loginState) {
     setTimeout(() => {
       findJobs()
     }, 5000);
+    setTimeout(() => {
+      runJob()
+    }, 15000);
   }
 }
 

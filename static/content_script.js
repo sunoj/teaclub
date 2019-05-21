@@ -470,6 +470,24 @@ function coinLottery(setting) {
   }
 }
 
+function accountAlive(type, message) {
+  chrome.runtime.sendMessage({
+    action: "saveLoginState",
+    state: "alive",
+    message: message,
+    type: type
+  }, function(response) {
+    console.log("accountAlive ", type, message, response);
+  });
+}
+
+if (document.getElementById("login-info")) {
+  observeDOM(document.getElementById("login-info"), function () {
+    if (document.getElementsByClassName("j_Username")[0] && document.getElementsByClassName("j_Username")[0].innerText) {
+      accountAlive('pc', 'PC网页检测到用户名')
+    }
+  });
+}
 
 // 主任务
 function CheckDom() {
@@ -482,16 +500,8 @@ function CheckDom() {
     `, 'body')
   }
   // 判断登录状态
-  if (document.getElementById("mtb-nickname") && document.getElementById("mtb-nickname").value || document.getElementsByClassName("J_MemberNick")[0]) {
-    chrome.runtime.sendMessage({
-      action: "saveLoginState",
-      state: "alive",
-      message: "PC网页检测到用户名",
-      type: "pc"
-    }, function(response) {
-      console.log("Response: ", response);
-    });
-  }
+  checkLoginState()
+
   if (window.location.host == 'login.taobao.com') {
     chrome.runtime.sendMessage({
       action: "saveLoginState",
@@ -514,19 +524,6 @@ function CheckDom() {
     });
   }
 
-  // 我的淘宝
-  if (document.title == "我的淘宝" && window.location.host == 'h5.m.taobao.com') {
-    if (document.getElementsByClassName("tb-toolbar-container")[0] || window.location.href == "https://h5.m.taobao.com/mlapp/mytaobao.html") {
-      chrome.runtime.sendMessage({
-        action: "saveLoginState",
-        state: "alive",
-        message: "移动端打开我的淘宝",
-        type: "m"
-      }, function(response) {
-        console.log("Response: ", response);
-      });
-    }
-  }
   // 订单
   if (document.title == "已买到的宝贝" && window.location.host == 'buyertrade.taobao.com') {
     let orderElements = document.getElementsByClassName("bought-wrapper-mod__head-info-cell___29cDO")
@@ -604,9 +601,22 @@ function CheckDom() {
 }
 
 
+// 检查登录状态
+function checkLoginState() {
+  // PC 是否登录
+  if (document.getElementById("mtb-nickname") && document.getElementById("mtb-nickname").value || document.getElementsByClassName("J_MemberNick")[0]) {
+    accountAlive('pc', 'PC网页检测到用户名')
+  }
+  // M 是否登录
+  if (document.getElementsByClassName("tb-toolbar-container")[0] || window.location.href == "https://h5.m.taobao.com/mlapp/mytaobao.html") {
+    accountAlive('m', '移动端打开我的淘宝')
+  }
+}
+
 
 $( document ).ready(function() {
   console.log('茶友会注入页面成功');
+  checkLoginState()
   if (!pageTaskRunning) {
     setTimeout( function(){
       console.log('茶友会开始执行任务');
