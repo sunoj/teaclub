@@ -397,7 +397,7 @@ export default {
 
     // 渲染通知
     setTimeout(() => {
-      this.getMessages()
+      this.renderMessages()
     }, 50);
 
     // 查询最新优惠
@@ -419,16 +419,8 @@ export default {
       sendResponse
     ) => {
       switch (message.action) {
-        case "orders_updated":
-          let orders = JSON.parse(message.data).map(function(order) {
-            order.displayTime = readableTime(DateTime.fromISO(order.time));
-            return order;
-          });
-          this.orders = orders;
-          break;
-        case "new_message":
-          this.unreadCount = this.unreadCount + 1
-          this.messages = makeupMessages(JSON.parse(message.data));
+        case "messages_updated":
+          this.renderMessages(message.messages);
           break;
         case "loginState_updated":
           this.dealWithLoginState();
@@ -454,7 +446,7 @@ export default {
       this.contentType = type
       switch (type) {
         case "messages":
-          this.getMessages()
+          this.renderMessages()
           this.readMessages()
           break;
         case "discounts":
@@ -485,23 +477,14 @@ export default {
         },
         function(response) {
           if (!hideNotice) {
-            weui.toast("手动运行成功", 3000);
+            if (response.result == "success") {
+              weui.toast("手动运行成功", 3000);
+            } else if (response.message) {
+              weui.alert(response.message, { title: '任务暂未运行' })
+            }
           }
         }
       );
-    },
-    makeupMessages: function(messages) {
-      if (messages) {
-        return messages.reverse().map(function(message) {
-          if (message.type == "coupon") {
-            message.coupon = JSON.parse(message.content);
-          }
-          message.time = readableTime(DateTime.fromISO(message.time));
-          return message;
-        });
-      } else {
-        return [];
-      }
     },
     // 任务列表
     getTaskList: function() {
@@ -554,10 +537,18 @@ export default {
         "，移动网页版登录" +
         getStateDescription(loginState, "m");
     },
-    getMessages: function() {
-      let messages = JSON.parse(localStorage.getItem('messages'))
-      messages = this.makeupMessages(messages)
-      this.messages = messages
+    renderMessages: function(messages) {
+      if (!messages) {
+        messages = getSetting('message', [])
+        chrome.runtime.sendMessage({ action: "getMessages" })
+      }
+      this.messages = messages.map(function(message) {
+        if (message.type == "coupon") {
+          message.coupon = message.content;
+        }
+        message.time = readableTime(DateTime.fromMillis(message.timestamp));
+        return message;
+      });
     },
     showLoginState: function() {
       $("#loginNotice").show();

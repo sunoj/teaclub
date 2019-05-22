@@ -29,7 +29,11 @@ const tasks = [
     type: ['m'],
     checkin: true,
     frequencyOption: ['daily', 'never'],
-    frequency: 'daily'
+    frequency: 'daily',
+    rateLimit:{
+      daily: 5,
+      hour: 2
+    }
   },
   {
     id: '6',
@@ -43,7 +47,11 @@ const tasks = [
     type: ['pc'],
     checkin: true,
     frequencyOption: ['daily', 'never'],
-    frequency: 'daily'
+    frequency: 'daily',
+    rateLimit:{
+      daily: 5,
+      hour: 2
+    }
   },
   {
     id: '5', // 失效
@@ -58,7 +66,11 @@ const tasks = [
     checkin: true,
     frequencyOption: ['daily', 'never'],
     frequency: 'daily',
-    deprecated: true
+    deprecated: true,
+    rateLimit:{
+      daily: 5,
+      hour: 2
+    }
   },
   {
     id: '2',
@@ -73,7 +85,11 @@ const tasks = [
     type: ['pc'],
     checkin: true,
     frequencyOption: ['daily', 'never'],
-    frequency: 'daily'
+    frequency: 'daily',
+    rateLimit:{
+      daily: 5,
+      hour: 2
+    }
   },
   {
     id: '3',
@@ -87,7 +103,11 @@ const tasks = [
     type: ['pc'],
     checkin: true,
     frequencyOption: ['daily', 'never'],
-    frequency: 'daily'
+    frequency: 'daily',
+    rateLimit:{
+      daily: 5,
+      hour: 2
+    }
   },
   {
     id: '4',
@@ -101,7 +121,11 @@ const tasks = [
     type: ['m'],
     checkin: true,
     frequencyOption: ['daily', 'never'],
-    frequency: 'daily'
+    frequency: 'daily',
+    rateLimit:{
+      daily: 5,
+      hour: 2
+    }
   }
 ]
 
@@ -117,9 +141,16 @@ let findTaskPlatform = function (task) {
 
 let getTask = function (taskId, currentPlatform) {
   let taskParameters = getSetting('teaclub:task-parameters', [])
-  let parameters = (taskParameters && taskParameters.length > 0) ? taskParameters.find(t => t.id == taskId.toString()) : {}
+  let parameters = (Array.isArray(taskParameters) && taskParameters.length > 0) ? taskParameters.find(t => t.id == taskId.toString()) : {}
   let task = Object.assign({}, tasks.find(t => t.id == taskId.toString()), parameters)
   let taskStatus = {}
+  let year = new Date().getFullYear()
+  let today = DateTime.local().toFormat("o")
+  let hour = new Date().getHours()
+  taskStatus.usage = {
+    hour: getSetting(`temporary:usage-${taskId}_${year}d:${today}:h:${hour}`, 0),
+    daily: getSetting(`temporary:usage-${taskId}_${year}d:${today}`, 0)
+  }
   taskStatus.platform = findTaskPlatform(task);
   taskStatus.frequency = getSetting(`task-${taskId}_frequency`, task.frequency)
   taskStatus.last_run_at = localStorage.getItem(`task-${task.id}_lasttime`) ? parseInt(localStorage.getItem(`task-${task.id}_lasttime`)) : null
@@ -134,8 +165,9 @@ let getTask = function (taskId, currentPlatform) {
   }
   // 订单里程任务每月5次
   if (task.id == "6") {
+    let year = new Date().getFullYear()
     let month = new Date().getMonth()
-    let monthStatus = localStorage.getItem(`order-fliggy-${month}`)
+    let monthStatus = localStorage.getItem(`order-fliggy-${year}-${month}`)
     if (monthStatus && monthStatus == 'Y') {
       taskStatus.checked = true
       taskStatus.checkin_description = "本月已领取五次"
@@ -155,6 +187,10 @@ let getTask = function (taskId, currentPlatform) {
   if (!taskStatus.platform) {
     taskStatus.suspended = true;
     taskStatus.platform = task.type[0];
+  }
+  // 如果超出限制
+  if (taskStatus.usage.daily >= task.rateLimit.daily || taskStatus.usage.hour >= task.rateLimit.hour) {
+    taskStatus.pause = true;
   }
   return Object.assign(task, taskStatus)
 }

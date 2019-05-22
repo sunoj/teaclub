@@ -1,10 +1,34 @@
 $ = window.$ = window.jQuery = require('jquery')
 import * as _ from "lodash"
 import Logline from 'logline'
+import Dexie from 'dexie';
 import {DateTime} from 'luxon'
 import {tasks, mapFrequency, getTasks, getTask} from './tasks'
 import {rand, getSetting, saveSetting} from './utils'
 import {getLoginState} from './account'
+
+const db = new Dexie("messages");
+db.version(1).stores({ messages: "++id,type,timestamp" });
+
+async function newMessage(messageId, data) {
+  let order = await db.messages.where('id').equals(messageId).toArray();
+  if (order && order.length > 0) return await db.messages.update(messageId, data)
+  let messageInfo = Object.assign(data, {
+    id: messageId,
+  })
+  return await db.messages.add(messageInfo);
+}
+
+async function updateMessages() {
+  // 最多只展示最近 30 天的消息
+  let last30Day = Date.now() - 60*60*1000*24*30;
+  let messages = await db.messages.where('timestamp').above(last30Day).reverse().sortBy('timestamp')
+  saveSetting('messages', messages)
+  chrome.runtime.sendMessage({
+    action: "messages_updated",
+    messages: messages
+  });
+}
 
 Logline.using(Logline.PROTOCOL.INDEXEDDB)
 
@@ -106,6 +130,7 @@ chrome.alarms.onAlarm.addListener(function( alarm ) {
       clearPinnedTabs()
       findJobs()
       runJob()
+      updateIcon()
       break;
     case alarm.name.startsWith('clearIframe'):
       resetIframe(taskId || 'iframe')
@@ -137,6 +162,32 @@ function saveJobStack(jobStack) {
   localStorage.setItem('jobStack', JSON.stringify(jobStack));
 }
 
+function scheduleJob(task) {
+  for (var i = 0, len = task.schedule.length; i < len; i++) {
+    let hour = DateTime.local().hour;
+    let scheduledHour = task.schedule[i]
+    if (scheduledHour > hour) {
+      let scheduledTime = DateTime.local().set({
+        hour: scheduledHour,
+        minute: rand(2) - 1,
+        second: rand(55)
+      }).valueOf()
+      chrome.alarms.create('runScheduleJob_' + task.id, {
+        when: scheduledTime
+      })
+      return log('background', "schedule job created", {
+        job: task,
+        time: scheduledHour,
+        when: scheduledTime
+      })
+    }
+    // 如果当前已经过了最晚的运行时段，则放弃运行
+    return log('background', "pass schedule job", {
+      job: task
+    })
+  }
+}
+
 // 寻找乔布斯
 function findJobs() {
   let jobStack = getSetting('jobStack', [])
@@ -144,6 +195,16 @@ function findJobs() {
   taskList.forEach(function(task) {
     if (task.suspended) {
       return console.log(task.title, '由于账号未登录已暂停运行')
+    }
+    // 如果任务有时间安排，则把任务安排到最近的下一个时段
+    if (task.schedule) {
+      return chrome.alarms.get('runScheduleJob_' + task.id, function (alarm) {
+        if (!alarm || alarm.scheduledTime < Date.now()) {
+          return scheduleJob(task)
+        } else {
+          console.log("job already scheduled ", alarm)
+        }
+      })
     }
     switch(task.frequency){
       case '2h':
@@ -172,18 +233,25 @@ function findJobs() {
 }
 
 function log(type, message, details) {
-  if (logger[type]) {
-    logger[type].info(message, details)
-  } else {
+  if (!logger[type]) {
     logger[type] = new Logline(type)
-    console.log(type, message, details)
   }
+  logger[type].info(message, details)
+  console.log(new Date(), type, message, details)
 }
 
 function resetIframe(domId) {
   $("#" + domId).remove();
   let iframeDom = `<iframe id="${domId}" width="400 px" height="600 px" src=""></iframe>`;
   $('body').append(iframeDom);
+}
+
+function incrementUsage(task) {
+  let year = new Date().getFullYear()
+  let today = DateTime.local().toFormat("o")
+  let hour = new Date().getHours()
+  saveSetting(`temporary:usage-${task.id}_${year}d:${today}:h:${hour}`, task.usage.hour + 1)
+  saveSetting(`temporary:usage-${task.id}_${year}d:${today}`, task.usage.daily  + 1)
 }
 
 // 执行组织交给我的任务
@@ -208,38 +276,18 @@ function runJob(taskId, force = false) {
   }
   let task = getTask(taskId)
 
+  // 如果任务已暂停
+  if (task.pause) {
+    return log('job', task.title, '由于运行次数超限而被暂停')
+  }
+
   // 如果任务暂停或者已经完成
   if ((task.suspended || task.checked) && !force) {
     return log('job', task.title, '由于账号未登录已暂停运行')
   }
   if (task && (task.frequency != 'never' || force)) {
-    // 如果不是强制运行，且任务有时间安排，则把任务安排到最近的下一个时段
-    if (!force && task.schedule) {
-      for (var i = 0, len = task.schedule.length; i < len; i++) {
-        let hour = DateTime.local().hour;
-        let scheduledHour = task.schedule[i]
-        if (scheduledHour > hour) {
-          let scheduledTime = DateTime.local().set({
-            hour: scheduledHour,
-            minute: rand(2) - 1,
-            second: rand(55)
-          }).valueOf()
-          chrome.alarms.create('runScheduleJob_' + task.id, {
-            when: scheduledTime
-          })
-          log('background', "schedule job created", {
-            job: task,
-            time: scheduledHour,
-            when: scheduledTime
-          })
-        }
-      }
-      // 如果当前已经过了最晚的运行时段，则放弃运行
-      log('background', "pass schedule job", {
-        job: task
-      })
-    }
     log('background', "run", task)
+    incrementUsage(task)
     if (task.mode == 'iframe') {
       openByIframe(task.url, 'job')
     } else {
@@ -457,24 +505,42 @@ function sendChromeNotification(id, content) {
 }
 
 
-function runTask(msg) {
+function runTask(msg, sendResponse) {
   let task = getTask(msg.taskId)
   // set 临时运行
   localStorage.setItem('temporary_job' + task.id + '_frequency', 'onetime');
-  runJob(task.id, true)
-  if (!msg.hideNotice) {
+  // 任务因为频率受限无法运行
+  if (task.pause) {
     sendChromeNotification(new Date().getTime().toString(), {
       type: "basic",
-      title: "正在重新运行" + task.title,
-      message: "任务运行大约需要2分钟，如果有情况我再叫你（请勿连续运行）",
+      title: "任务因为频率受限无法运行",
+      message: task.title + "已达到最大时段频率，每小时：" + task.rateLimit.hour,
       iconUrl: 'static/image/128.png'
     })
+    sendResponse({
+      result: "pause",
+      message: "任务因为频率受限无法运行"
+    })
+  } else {
+    runJob(task.id, true)
+    sendResponse({
+      result: "success"
+    })
+    if (!msg.hideNotice) {
+      sendChromeNotification(new Date().getTime().toString(), {
+        type: "basic",
+        title: "正在重新运行" + task.title,
+        message: "任务运行大约需要2分钟，如果有情况我再叫你（请勿连续运行）",
+        iconUrl: 'static/image/128.png'
+      })
+    }
   }
 }
 
 function markCheckinStatus(msg) {
   let task = getTask(msg.taskId)
   if (task) {
+    let year = new Date().getFullYear()
     let checkinKey = `checkin_${task.key}`
     let currentStatus = getSetting(checkinKey, null)
     let data = {
@@ -483,7 +549,7 @@ function markCheckinStatus(msg) {
       value: msg.value
     }
     if (msg.month) {
-      localStorage.setItem(`order-fliggy-${msg.month}`, 'Y');
+      localStorage.setItem(`order-fliggy-${year}-${msg.month}`, 'Y');
     }
     if (msg.orderId) {
       localStorage.setItem(`order-fliggy_${msg.orderId}`, 'Y');
@@ -583,12 +649,15 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     case 'option':
       localStorage.setItem(''+msg.title, msg.content);
       break;
+    // 查询消息列表
+    case 'getMessages':
+      setTimeout(async () => {
+        await updateMessages()
+      }, 50);
+      break;
     // 手动运行任务
     case 'runTask':
-      runTask(msg)
-      sendResponse({
-        result: true
-      })
+      runTask(msg, sendResponse)
       break;
     // 签到通知
     case 'checkin_notice':
@@ -676,7 +745,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       })
       break;
     case 'coupon':
-      var coupon = JSON.parse(msg.content)
+      var coupon = msg.content
       var mute_coupon = getSetting('mute_coupon')
       if (mute_coupon && mute_coupon == 'checked') {
         console.log('coupon', msg)
@@ -708,27 +777,27 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     case 'coupon':
     case 'notice':
     case 'checkin_notice':
-      let messages = localStorage.getItem('messages') ? JSON.parse(localStorage.getItem('messages')) : [];
       if (msg.test) {
         break;
       }
-      messages.push({
-        type: msg.action,
-        reward: msg.reward,
+      let message = {
+        type: msg.type || msg.action, // 通知的类型
+        batch: msg.batch, // 批次，通常是优惠券的属性
+        reward: msg.reward, // 奖励的类型
+        unit: msg.unit || msg.reward || msg.batch, // 奖励的单位
+        value: msg.value, // 奖励的数量
         title: msg.title,
         content: msg.content,
-        time: new Date()
-      })
-      updateUnreadCount(1)
-      // 如果消息数大于100了，就把最老的一条消息去掉
-      if (messages.length > 100) {
-        messages.shift()
+        timestamp: Date.now()
       }
-      chrome.runtime.sendMessage({
-        action: "new_message",
-        data: JSON.stringify(messages)
-      });
-      localStorage.setItem('messages', JSON.stringify(messages));
+      let uuid = msg.uuid || Date.now()
+      updateUnreadCount(1)
+      setTimeout(async () => {
+        await newMessage(uuid, message);
+      }, 50);
+      setTimeout(async () => {
+        await updateMessages()
+      }, 3000);
       break;
   }
 
