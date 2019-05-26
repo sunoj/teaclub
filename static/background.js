@@ -588,6 +588,33 @@ function loadSettingsToLocalStorage(key) {
   })
 }
 
+function sendMessageToPage(targetPage, data) {
+  chrome.tabs.sendMessage(targetPage.tab.id, data, {}, function (response) {
+    console.log('send message to tabs response', data, response)
+  })
+}
+
+function timeoutPromise(promise, ms) {
+  return new Promise(function(resolve, reject) {
+    setTimeout(function() {
+      reject(new Error("timeout"))
+    }, ms)
+    promise.then(resolve, reject)
+  })
+}
+
+// 查找优惠券
+async function findCoupon(params) {
+  try {
+    let response = await timeoutPromise(fetch(`https://teaclub.zaoshu.so/coupon/query?sku=${params.sku}&keyword=${params.title}&merchant=${params.merchant}`), 5000)
+    let coupon = await response.json();
+    return coupon;
+  } catch (error) {
+    console.error(error)
+    return null
+  }
+}
+
 // 处理消息通知
 chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
   if (!msg.action) {
@@ -689,6 +716,19 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     // 更新运行状态
     case 'updateRunStatus':
       updateRunStatus(msg)
+      sendResponse({
+        result: true
+      })
+      break;
+    // 查询优惠券
+    case 'queryCoupon':
+      setTimeout(async () => {
+        let coupon = await findCoupon(msg.params)
+        sendMessageToPage(sender, {
+          type: "couponInfo",
+          coupon
+        })
+      }, 50);
       sendResponse({
         result: true
       })

@@ -546,7 +546,7 @@ export default {
         if (message.type == "coupon") {
           message.coupon = message.content;
         }
-        message.time = readableTime(DateTime.fromMillis(message.timestamp));
+        message.time = readableTime(message.timestamp ? DateTime.fromMillis(message.timestamp) : DateTime.fromISO(message.time));
         return message;
       });
     },

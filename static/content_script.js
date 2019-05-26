@@ -1,40 +1,34 @@
 var observeDOM = (function () {
-  var MutationObserver = window.MutationObserver || window.WebKitMutationObserver,
-    eventListenerSupported = window.addEventListener;
-
+  var MutationObserver = window.MutationObserver || window.WebKitMutationObserver
   return function (obj, callback) {
-    if (MutationObserver) {
-      // define a new observer
-      var obs = new MutationObserver(function (mutations, observer) {
-        if (mutations[0].addedNodes.length || mutations[0].removedNodes.length)
-          callback();
-      });
-      // have the observer observe foo for changes in children
-      obs.observe(obj, { childList: true, subtree: true });
-    }
-    else if (eventListenerSupported) {
-      obj.addEventListener('DOMNodeInserted', callback, false);
-      obj.addEventListener('DOMNodeRemoved', callback, false);
-    }
+    // define a new observer
+    var obs = new MutationObserver(function (mutations, observer) {
+      if (mutations[0].addedNodes.length || mutations[0].removedNodes.length) {
+        callback(observer);
+      }
+    });
+    // have the observer observe foo for changes in children
+    obs.observe(obj, { childList: true, subtree: true });
   };
 })();
 
+function mockTap(element) {
+  let rect = element.getBoundingClientRect()
+  sendTouchEvent(rect.x + 3, rect.y + 3, element, 'touchstart');
+  sendTouchEvent(rect.x + 3, rect.y + 3, element, 'touchend');
+}
 
-// 模拟点击
+// 模拟点击 (原生)
 function simulateClick(domNode, mouseEvent) {
-  console.log('simulateClick', domNode, mouseEvent)
   if (mouseEvent && domNode) {
     return mockClick(domNode)
   }
   try {
-    dom.trigger("tap")
-    dom.trigger("click")
+    mockTap(domNode)
+    mockClick(domNode)
   } catch (error) {
-    try {
-      mockClick(domNode)
-    } catch (err) {
-      console.log('fullback to mockClick', err)
-    }
+    console.log('fullback to mockClick', error)
+    mockClick(domNode)
   }
 }
 
@@ -54,18 +48,17 @@ function mockClick(element) {
 
 /* eventType is 'touchstart', 'touchmove', 'touchend'... */
 function sendTouchEvent(x, y, element, eventType) {
-  const touchObj = new Touch({
-    identifier: Date.now(),
-    target: element,
-    clientX: x,
-    clientY: y,
-    radiusX: 2.5,
-    radiusY: 2.5,
-    rotationAngle: 10,
-    force: 0.5,
-  });
-
   if ('TouchEvent' in window && TouchEvent.length > 0) {
+    const touchObj = new Touch({
+      identifier: Date.now(),
+      target: element,
+      clientX: x,
+      clientY: y,
+      radiusX: 2.5,
+      radiusY: 2.5,
+      rotationAngle: 10,
+      force: 0.5,
+    });
     const touchEvent = new TouchEvent(eventType, {
       cancelable: true,
       bubbles: true,
@@ -168,23 +161,15 @@ function addCouponElement(coupon) {
   currentDiv.appendChild(newDiv);
 }
 
-async function findCoupon(disable_find_coupon) {
-  if (disable_find_coupon) return
-  addDiscountElement()
-  const urlParams = new URLSearchParams(window.location.search);
-  const sku = urlParams.get('id') || urlParams.get('skuId')
-  const title = document.title.split('-')[0]
-  const merchant = window.location.host.indexOf('item.taobao.com') > -1 ? 'taobao' : 'tmall'
-  let response = await fetch(`https://teaclub.zaoshu.so/coupon/query?sku=${sku}&keyword=${title}&merchant=${merchant}`)
-  try {
-    let coupon = await response.json();
-    console.log('coupon', coupon)
+
+function showCoupon(coupon) {
+  console.log('coupon', coupon)
+  if (coupon && coupon.url) {
     setTimeout(() => {
       addCouponElement(coupon)
       document.getElementById("teaclub").getElementsByClassName("loading")[0].style.display = 'none';
     }, 500);
-    return coupon;
-  } catch (error) {
+  } else {
     setTimeout(() => {
       document.getElementById("teaclub").getElementsByClassName("loading")[0].style.display = 'none';
       document.getElementById("teaclub").innerHTML = `
@@ -193,6 +178,23 @@ async function findCoupon(disable_find_coupon) {
         </div>`
     }, 2500);
   }
+}
+
+async function findCoupon(disable_find_coupon) {
+  if (disable_find_coupon) return
+  addDiscountElement()
+  const urlParams = new URLSearchParams(window.location.search);
+  const sku = urlParams.get('id') || urlParams.get('skuId')
+  const title = document.title.split('-')[0]
+  const merchant = window.location.host.indexOf('item.taobao.com') > -1 ? 'taobao' : 'tmall'
+  chrome.runtime.sendMessage({
+    action: "queryCoupon",
+    params: {
+      merchant,
+      sku,
+      title
+    }
+  })
 }
 
 function markCheckinStatus(task, data, cb) {
@@ -408,7 +410,7 @@ function coinCheckin(setting) {
       action: "updateRunStatus",
       taskId: 1
     })
-    let signInButton = document.getElementsByClassName("game-coin-sign-ball")[0]
+    let signInButton = document.getElementsByClassName("game-coin-sign-ball")[0] ? document.getElementsByClassName("game-coin-sign-ball")[0].getElementsByClassName("icon-coin")[0] : null
     let getWaterIcon = document.getElementsByClassName("game-icon large")[0]
     if (getWaterIcon) {
       setTimeout(() => {
@@ -624,6 +626,19 @@ $( document ).ready(function() {
     }, 2500)
   }
 });
+
+// 应用消息
+chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
+  console.log('onMessage', message)
+  switch (message.type) {
+    case 'couponInfo':
+      showCoupon(message.coupon)
+      break;
+    default:
+      break;
+  }
+})
+
 
 // 消息
 var passiveSupported = false;
