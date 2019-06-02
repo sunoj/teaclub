@@ -53,6 +53,7 @@
     "webRequestBlocking",
     "alarms",
     "tabs",
+    "contextMenus",
     "notifications"
   ]
 }

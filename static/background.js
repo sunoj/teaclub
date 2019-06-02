@@ -162,9 +162,11 @@ function saveJobStack(jobStack) {
   localStorage.setItem('jobStack', JSON.stringify(jobStack));
 }
 
+
+
 function scheduleJob(task) {
+  let hour = DateTime.local().hour;
   for (var i = 0, len = task.schedule.length; i < len; i++) {
-    let hour = DateTime.local().hour;
     let scheduledHour = task.schedule[i]
     if (scheduledHour > hour) {
       let scheduledTime = DateTime.local().set({
@@ -175,16 +177,13 @@ function scheduleJob(task) {
       chrome.alarms.create('runScheduleJob_' + task.id, {
         when: scheduledTime
       })
-      return log('background', "schedule job created", {
+      log('background', "schedule job created", {
         job: task,
         time: scheduledHour,
         when: scheduledTime
       })
+      break;
     }
-    // 如果当前已经过了最晚的运行时段，则放弃运行
-    return log('background', "pass schedule job", {
-      job: task
-    })
   }
 }
 
@@ -260,7 +259,7 @@ function runJob(taskId, force = false) {
   if (DateTime.local().hour < 6 && !force) {
     return console.log('Silent Night')
   }
-  log('background', new Date(), "run job", {
+  log('background', "run job", {
     jobId: taskId,
     force: force
   })
@@ -370,6 +369,9 @@ $( document ).ready(function() {
 
   // 加载任务参数
   loadSettingsToLocalStorage('teaclub:task-parameters')
+
+  // 加载推荐设置
+  loadRecommendSettingsToLocalStorage()
 })
 
 
@@ -406,22 +408,21 @@ chrome.notifications.onClicked.addListener(function (notificationId) {
     let type = notificationId.split('_')[1]
     if (type && type.length > 1) {
       switch (type) {
+        case 'fliggy':
+          chrome.tabs.create({
+            url: "https://teaclub.zaoshu.so/sites/fliggy"
+          })
+          break;
         default:
-          if (type == 'fliggy') {
-            chrome.tabs.create({
-              url: "https://teaclub.zaoshu.so/sites/fliggy"
-            })
-          } else {
-            chrome.tabs.create({
-              url: "https://teaclub.zaoshu.so/sites/taobao"
-            })
-          }
+          chrome.tabs.create({
+            url: "https://teaclub.zaoshu.so/sites/taobao"
+          })
       }
     }
   }
 })
 
-// 根据登陆状态调整图标显示
+// 根据登录状态调整图标显示
 function updateIcon() {
   let loginState = getLoginState()
   switch (loginState.class) {
@@ -442,6 +443,8 @@ function updateIcon() {
           "38": "static/image/icon@38.png"
         }
       });
+      chrome.contextMenus.removeAll();
+
       break;
     case 'failed':
       chrome.browserAction.setBadgeBackgroundColor({
@@ -451,8 +454,17 @@ function updateIcon() {
         text: "X"
       });
       chrome.browserAction.setTitle({
-        title: "账号登陆失效"
+        title: "账号登录失效"
       })
+      chrome.contextMenus.removeAll();
+      chrome.contextMenus.create({
+        title: "账号登录失效，点击登录",
+        contexts: ["browser_action"],
+        onclick: function() {
+          openLoginPage()
+        }
+      });
+      break;
     case 'warning':
       chrome.browserAction.setBadgeBackgroundColor({
         color: "#EE7E1B"
@@ -460,14 +472,27 @@ function updateIcon() {
       chrome.browserAction.setBadgeText({
         text: " ! "
       });
+      chrome.contextMenus.removeAll();
+      chrome.contextMenus.create({
+        title: "账号登录失效，点击登录",
+        contexts: ["browser_action"],
+        onclick: function() {
+          openLoginPage()
+        }
+      });
       break;
     default:
       break;
   }
 }
 
+function openLoginPage() {
+  chrome.tabs.create({
+    url: "https://i.taobao.com/my_taobao.htm"
+  })
+}
 
-// 保存登陆状态
+// 保存登录状态
 function saveLoginState(loginState) {
   let previousState = getLoginState()
   localStorage.setItem('login-state_' + loginState.type, JSON.stringify({
@@ -588,6 +613,33 @@ function loadSettingsToLocalStorage(key) {
   })
 }
 
+// 加载推荐设置
+function loadRecommendSettingsToLocalStorage() {
+  $.getJSON("https://teaclub.zaoshu.so/setting/teaclub:recommend", function (json) {
+    if (json.displayPopup) {
+      saveSetting('displayPopup', json.displayPopup)
+    }
+    if (json.events) {
+      saveSetting('events', json.events)
+    }
+    if (json.announcements && json.announcements.length > 0) {
+      saveSetting('announcements', json.announcements)
+    }
+    if (json.promotions) {
+      saveSetting('promotions', json.promotions)
+    }
+    if (json.recommendedLinks && json.recommendedLinks.length > 0) {
+      saveSetting('recommendedLinks', json.recommendedLinks)
+    } else {
+      localStorage.removeItem('recommendedLinks')
+    }
+    if (json.recommendServices && json.recommendServices.length > 0) {
+      saveSetting('recommendServices', json.recommendServices)
+    }
+  });
+}
+
+
 function sendMessageToPage(targetPage, data) {
   chrome.tabs.sendMessage(targetPage.tab.id, data, {}, function (response) {
     console.log('send message to tabs response', data, response)
@@ -623,19 +675,17 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
   let loginState = getLoginState()
   log('msg', new Date(), msg);
   switch(msg.action){
-    // 保存登陆状态
+    // 保存登录状态
     case 'saveLoginState':
       saveLoginState(msg)
       break;
-    // 获取登陆状态
+    // 获取登录状态
     case 'getLoginState':
       sendResponse(loginState)
       break;
     // 打开登录页面
     case 'openLogin':
-      chrome.tabs.create({
-        url: "https://i.taobao.com/my_taobao.htm"
-      })
+      openLoginPage()
       break;
     // 保存变量值
     case 'setVariable':
@@ -733,57 +783,6 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
         result: true
       })
       break;
-    case 'create_tab':
-      var content = JSON.parse(msg.content)
-      chrome.tabs.create({
-        index: content.index,
-        url: content.url,
-        active: content.active == 'true',
-        pinned: content.pinned == 'true'
-      }, function (tab) {
-        chrome.tabs.update(tab.id, {
-          muted: true
-        }, function (result) {
-          log('background', "muted tab", result)
-        })
-        chrome.alarms.create('closeTab_' + tab.id, { delayInMinutes: 1 })
-      })
-      break;
-    case 'remove_tab':
-      var content = JSON.parse(msg.content)
-      chrome.tabs.query({
-        url: content.url,
-        pinned: content.pinned == 'true'
-      }, function (tabs) {
-        var tabIds = $.map(tabs, function (tab) {
-          return tab.id
-        })
-        chrome.tabs.remove(tabIds)
-      })
-      break;
-    // 高亮Tab
-    case 'highlightTab':
-      var content = JSON.parse(msg.content)
-      chrome.tabs.query({
-        url: content.url,
-        pinned: content.pinned == 'true'
-      }, function (tabs) {
-        $.map(tabs, function (tab) {
-          chrome.tabs.update(tab.id, { pinned: false }, function (newTab) {
-            sendChromeNotification(new Date().getTime().toString(), {
-              type: "basic",
-              title: content.title ? content.title : "茶友会未能自动完成任务",
-              message: "需要人工辅助，已将窗口切换至需要操作的标签" ,
-              iconUrl: 'static/image/128.png'
-            })
-            chrome.tabs.highlight({
-              tabs: newTab.index
-            })
-          })
-          return tab.id
-        })
-      })
-      break;
     case 'coupon':
       var coupon = msg.content
       var mute_coupon = getSetting('mute_coupon')
@@ -842,7 +841,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
   }
 
   if (msg.text != 'saveAccount') {
-    log('message', new Date(), msg.text, msg);
+    log('message', msg.text, msg);
   }
   // 如果消息 300ms 未被回复
   return true

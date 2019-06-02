@@ -251,6 +251,7 @@
     </div>
     <div class="dialogs">
       <guide v-if="showGuide" :login-state="loginState"></guide>
+      <popup v-if="showPopup" @close="showPopup = false"></popup>
     </div>
   </div>
 </template>
@@ -343,10 +344,11 @@ Vue.directive("autoSave", {
 import loading from "./loading.vue";
 import discounts from "./discounts.vue";
 import guide from "./guide.vue";
+import popup from './popup.vue';
 
 export default {
   name: "App",
-  components: { loading, discounts, guide },
+  components: { loading, discounts, guide, popup },
   data() {
     return {
       taskList: [],
@@ -355,6 +357,7 @@ export default {
       recommendedLinks: getSetting("recommendedLinks", []),
       stateText: stateText,
       newDiscounts: false,
+      showPopup: true,
       frequencyOptionText: frequencyOptionText,
       recommendServices: getSetting("recommendServices", recommendServices),
       currentVersion: "{{version}}",
@@ -587,6 +590,16 @@ export default {
 </script>
 
 <style scoped>
+.messages, .discounts{
+  overflow: hidden;
+  height: 510px;
+  width: 431px;
+}
+.message-items {
+  margin-top: 10px;
+  height: 504px;
+  overflow-y: auto;
+}
 .order-good.suspended {
   opacity: 0.5;
 }

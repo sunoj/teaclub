@@ -19,6 +19,7 @@
     "gulp-preprocess": "^2.0.0",
     "gulp-replace": "^0.6.1",
     "gulp-watch": "^4.3.11",
+    "hooper": "^0.1.5",
     "jobs": "^0.0.4",
     "jquery": "3.4",
     "lodash": "^4.17.11",

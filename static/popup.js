@@ -1,11 +1,8 @@
 import * as _ from "lodash"
 $ = window.$ = window.jQuery = require('jquery')
-import {DateTime} from 'luxon'
 import tippy from 'tippy.js'
 import weui from 'weui.js'
 import Vue from 'vue'
-
-import {getSetting} from './utils'
 
 $.each(['show', 'hide'], function (i, ev) {
   var el = $.fn[ev];
@@ -22,37 +19,6 @@ new Vue({
   components: { App }
 })
 
-function showJEvent(rateLimit) {
-  if (rateLimit) {
-    let today = DateTime.local().toFormat("o")
-    let showRecommendState = getSetting('showRecommendState', {
-      date: today,
-      times: 0
-    })
-    if (showRecommendState.date == today) {
-      if (showRecommendState.times > rateLimit.limit) {
-        return console.log('展示次数超限')
-      } else {
-        showRecommendState.times = showRecommendState.times + 1
-      }
-    } else {
-      showRecommendState.date = today
-      showRecommendState.times = 1
-    }
-    localStorage.setItem('showRecommendState', JSON.stringify(showRecommendState))
-  }
-  // 加载反馈
-  if (!$("#specialEventIframe").attr('src') || $("#specialEventIframe").attr('src') == '') {
-    $("#specialEventIframe").attr('src', "https://teaclub.zaoshu.so/recommend")
-    setTimeout(function () {
-      $('.iframe-loading').hide()
-    }, 800)
-  }
-  $("#specialEventDialags").show()
-}
-
-
-
 // 消息已读
 function readMessage() {
   chrome.runtime.sendMessage({
@@ -64,45 +30,11 @@ function readMessage() {
 
 
 $( document ).ready(function() {
-  const displayRecommend = localStorage.getItem('displayRecommend')
-  const displayRecommendRateLimit = getSetting('displayRecommendRateLimit', {
-    rate: 7,
-    limit: 1
-  })
-  let windowWidth = Number(document.body.offsetWidth)
-  let time = Date.now().toString()
   // 标记已读
   readMessage()
 
   // tippy
   tippy('.tippy')
-
-  $('body').width(windowWidth-1)
-  // 窗口 resize
-  setTimeout(() => {
-    $('body').width(windowWidth)
-  }, 100);
-
-  // 查询推荐设置
-  $.getJSON("https://teaclub.zaoshu.so/setting/teaclub:recommend", function (json) {
-    if (json.display) {
-      localStorage.setItem('displayRecommend', json.display)
-    }
-    if (json.ratelimit) {
-      localStorage.setItem('displayRecommendRateLimit', JSON.stringify(json.ratelimit))
-    }
-    if (json.announcements && json.announcements.length > 0) {
-      localStorage.setItem('announcements', JSON.stringify(json.announcements))
-    }
-    if (json.recommendedLinks && json.recommendedLinks.length > 0) {
-      localStorage.setItem('recommendedLinks', JSON.stringify(json.recommendedLinks))
-    } else {
-      localStorage.removeItem('recommendedLinks')
-    }
-    if (json.recommendServices && json.recommendServices.length > 0) {
-      localStorage.setItem('recommendServices', JSON.stringify(json.recommendServices))
-    }
-  });
 
   // 查询最新版本
   $.getJSON("https://teaclub.zaoshu.so/updates?buildid={{buildid}}&browser={{browser}}&app=teaclub", function (lastVersion) {
@@ -146,19 +78,6 @@ $( document ).ready(function() {
       localStorage.removeItem('newVersion')
     }
   });
-
-  // 是否已存在弹窗
-  function isNoDialog(){
-    return ($(".js_dialog:visible").length < 1) && ($(".weui-dialog:visible").length < 1)
-  }
-
-  // 常规弹窗延迟200ms
-  setTimeout(() => {
-    // 只有在没有弹框 且 打开了推荐 取 1/5 的几率弹出推荐
-    if (isNoDialog() && displayRecommend == 'true' && time[time.length - 1] > displayRecommendRateLimit.rate) {
-      showJEvent(displayRecommendRateLimit)
-    }
-  }, 200);
 
 
   $('.settings .weui-navbar__item').on('click', function () {

@@ -44,6 +44,7 @@
       </div>
     </div>
     <div class="discount-list" v-if="discountList">
+      <events :events="events" v-if="discountTab == 'featured' && events && events.length > 0"></events>
       <div class="discounts-box" v-for="discount in discountList" :key="discount.id">
         <div :class="discount.pinned ? 'discount pinned' : 'discount'">
           <div class="title" @mouseover="discount.focus = true" @mouseout="discount.focus = false">
@@ -112,10 +113,11 @@ import { DateTime } from "luxon";
 import { getSetting, readableTime } from "../static/utils";
 import loading from "./loading.vue";
 import report from "./report.vue";
+import events from "./events.vue";
 
 export default {
   name: "discounts",
-  components: { loading, report },
+  components: { loading, report, events },
   data() {
     return {
       followedTagIds: getSetting("followedTagIds", []),
@@ -138,6 +140,9 @@ export default {
     },
     showClear: function() {
       return this.keyword && this.keyword.length > 0;
+    },
+    events: function() {
+      return this.discountList ? this.discountList.filter(discount => discount.event) : [];
     }
   },
   methods: {
