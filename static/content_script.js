@@ -340,6 +340,7 @@ function fliggyCheckin3(setting) {
         signInReward = element
       }
     });
+    console.log('signInButton', signInButton)
     if (signInButton) {
       setTimeout(() => {
         simulateClick(signInButton, true)
@@ -578,7 +579,7 @@ function CheckDom() {
       }
     }, 3000);
   };
-  if (document.title == "飞猪·会员中心" && window.location.host == 'h5.m.taobao.com') {
+  if (document.title == "会员中心" && window.location.host == 'h5.m.taobao.com') {
     getSetting('task-4_frequency', fliggyCheckin3)
   }
   // 淘金币

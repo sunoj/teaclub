@@ -15,6 +15,7 @@
   "content_scripts": [
     {
       "matches": ["*://*.taobao.com/*", "*://*.tmall.com/*", "*://*.fliggy.com/*"],
+      "exclude_matches": ["*://ratewrite.tmall.com/*", "*://rate.taobao.com/*", "*://passport.taobao.com/*", "*://buy.taobao.com/*", "*://buy.tmall.com/*"],
       "js": [
         "static/zepto.min.js",
         "static/content_script.js"
