@@ -96,18 +96,6 @@ $( document ).ready(function() {
     });
   })
 
-  $(".showAlipayRedpack").on("click", function () {
-    weui.dialog({
-      title: '扫码领红包',
-      content: `<img src="https://jjbcdn.zaoshu.so/chrome/alipayred.png" style="width: 270px;"></img>`,
-      className: 'redpack',
-      buttons: [{
-        label: '完成',
-        type: 'primary'
-      }]
-    })
-  })
-
   $(".weui-dialog__ft a").on("click", function () {
     $("#dialogs").hide()
     $("#listenAudio").hide()

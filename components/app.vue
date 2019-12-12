@@ -162,11 +162,7 @@
             v-tippy
           ></a>
         </div>
-        <div class="links">
-          <span class="el-tag el-tag--danger">
-            <a href="#" class="showAlipayRedpack" title="天天领支付宝红包" v-tippy>支付宝红包</a>
-          </span>
-        </div>
+        <links></links>
       </div>
     </div>
     <div class="contents">
@@ -345,10 +341,11 @@ import loading from "./loading.vue";
 import discounts from "./discounts.vue";
 import guide from "./guide.vue";
 import popup from './popup.vue';
+import links from './links.vue';
 
 export default {
   name: "App",
-  components: { loading, discounts, guide, popup },
+  components: { loading, discounts, guide, popup, links },
   data() {
     return {
       taskList: [],

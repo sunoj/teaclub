@@ -369,6 +369,7 @@ $( document ).ready(function() {
 
   // 加载任务参数
   loadSettingsToLocalStorage('teaclub:task-parameters')
+  loadSettingsToLocalStorage('teaclub:action-links')
 
   // 加载推荐设置
   loadRecommendSettingsToLocalStorage()
