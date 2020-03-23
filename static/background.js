@@ -657,11 +657,11 @@ function timeoutPromise(promise, ms) {
 }
 
 // 查找优惠券
-async function findCoupon(params) {
+async function searchCoupon(params) {
   try {
-    let response = await timeoutPromise(fetch(`https://teaclub.zaoshu.so/coupon/query?sku=${params.sku}&keyword=${params.title}&merchant=${params.merchant}`), 5000)
-    let coupon = await response.json();
-    return coupon;
+    let response = await timeoutPromise(fetch(`http://127.0.0.1:3824/coupon/search?sku=${params.sku}&keyword=${params.title}&merchant=${params.merchant}`), 5000)
+    let details = await response.json();
+    return details;
   } catch (error) {
     console.error(error)
     return null
@@ -773,11 +773,15 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       break;
     // 查询优惠券
     case 'queryCoupon':
+      var disable_same_goods = getSetting('disable_same_goods')
       setTimeout(async () => {
-        let coupon = await findCoupon(msg.params)
+        let result = await searchCoupon(msg.params)
+        if (disable_same_goods) {
+          result.similarGoods = null
+        }
         sendMessageToPage(sender, {
           type: "couponInfo",
-          coupon
+          content: result
         })
       }, 50);
       sendResponse({

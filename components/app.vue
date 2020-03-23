@@ -114,6 +114,17 @@
                   </div>
                 </div>
                 <div class="weui-cell weui-cell_switch">
+                  <div class="weui-cell__bd">停止“找同款”</div>
+                  <div class="weui-cell__ft">
+                    <input
+                      class="weui-switch"
+                      v-auto-save
+                      type="checkbox"
+                      name="disable_same_goods"
+                    >
+                  </div>
+                </div>
+                <div class="weui-cell weui-cell_switch">
                   <div class="weui-cell__bd">不再提示签到通知</div>
                   <div class="weui-cell__ft">
                     <input class="weui-switch" v-auto-save type="checkbox" name="mute_checkin">

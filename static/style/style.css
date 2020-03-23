@@ -1,75 +1,340 @@
-#teaclub{
-    height: 80px;
+#teaclub {
+  min-height: 80px;
+  background: #f1fde347;
+  padding: 10px;
+  margin-bottom: 1em;
 }
 
-a.teaclub-coupon:hover{
-    text-decoration: none;
+#teaclub .information-from{
+  font-size: 12px;
+  color: #ccc;
+  height: 12px;
+  display: block;
+  text-align: right;
+  padding-top: 4px;
+  padding-bottom: 4px;
 }
 
-#teaclub .loading, #teaclub .coupon-not-found{
-    background: #fff;
-    font-size: 16px;
-    text-align: center;
-    color: #ccc;
+#teaclub dt.metatit{
+  text-align: left;
+  float: left;
+  width: 66px;
+}
+.tb-wrap-newshop #teaclub dt.metatit{
+  width: 60px;
 }
 
-#teaclub .loading img, #teaclub .coupon-not-found img{
-    width: 80px;
-    vertical-align:middle;
+#teaclub .prop dd{
+  width: 420px;
+  float: left;
+  position: relative;
+  overflow: visible;
+  height: auto;
+  z-index: 1;
 }
 
-.teaclub-discount{
-    padding: 10px;
-    background-color: #FFF2E8;
+.tb-wrap-newshop #teaclub .prop dd{
+  width: 400px;
 }
 
-.coupon-bonus-item{
-    margin: 2px 0 0 66px;
-    width: 74%;
-    background-color: #ffe2e0;
-    border-radius: 6px;
-    display: block;
+#teaclub .clear:after {
+  content: '\20';
+  display: block;
+  height: 0;
+  clear: both;
 }
-.coupon-bonus-item .coupon-item-left{
-    width: 66%;
-    color: #fff;
-    background-color: #de1d3d;
-    border-radius: 6px 0 0 6px;
-    display: inline-block;
 
+#Coupon-box{
+  margin-bottom: 1em;
 }
-.coupon-bonus-item .coupon-item-right{
-    text-align: right;
-    padding-left: 7px;
-    margin-top: 7px;
-    color: #df4c47;
-    display: inline-block;
+
+a.teaclub-coupon:hover {
+  text-decoration: none;
+}
+
+#teaclub .loading, #teaclub .coupon-not-found {
+  background: #fff;
+  font-size: 16px;
+  text-align: center;
+  color: #ccc;
+}
+
+#teaclub .loading img, #teaclub .coupon-not-found img {
+  width: 80px;
+  vertical-align: middle;
+}
+
+.teaclub-discount {
+  padding: 10px;
+  background-color: #FFF2E8;
+}
+
+.coupon-bonus-item {
+  width: 100%;
+  background-color: #ffe2e0;
+  border-radius: 6px;
+  display: block;
+  max-width: 400px;
+}
+
+.coupon-bonus-item .coupon-item-left {
+  width: 69%;
+  color: #fff;
+  background-color: #de1d3d;
+  border-radius: 6px 0 0 6px;
+  display: inline-block;
+}
+
+.coupon-bonus-item .coupon-item-right {
+  text-align: right;
+  padding-left: 7px;
+  margin-top: 7px;
+  color: #df4c47;
+  display: inline-block;
 }
 
 .coupon-bonus-item .coupon-item-rmb {
-    font-family: arial;
-    font-size: 14px;
-    line-height: 18px;
-    text-align: right;
-    padding-right: 12px;
-    margin-top: 14px;
+  font-family: arial;
+  font-size: 14px;
+  line-height: 18px;
+  text-align: right;
+  padding-right: 12px;
+  margin-top: 14px;
 }
 
 .coupon-bonus-item .coupon-item-surplus {
-    font-size: 12px;
-    line-height: 18px;
-    text-align: right;
-    padding-right: 12px;
-    margin-top: 6px;
+  font-size: 12px;
+  line-height: 18px;
+  text-align: right;
+  padding-right: 12px;
+  margin-top: 6px;
 }
 
 .coupon-bonus-item .coupon-item-rmb .rmb {
-    font-family: tahoma;
-    font-size: 28px;
-    line-height: 18px;
+  font-family: tahoma;
+  font-size: 28px;
+  line-height: 18px;
 }
 
-#J_OtherDiscount .coupon-bonus-item{
-    line-height: 1;
-    margin-top: 20px;
+#J_OtherDiscount .coupon-bonus-item {
+  line-height: 1;
+  margin-top: 20px;
+}
+
+#teaclub .PDD-card {
+  -webkit-box-align: stretch;
+  -ms-flex-align: stretch;
+  align-items: stretch;
+  overflow: hidden;
+  position: relative;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  min-height: 128px;
+  max-width: 400px;
+  border-radius: 6px;
+  background-color: #f5f5f5;
+  text-decoration: none;
+  margin-bottom: 0.5em;
+}
+
+#teaclub .PDD-cardContainer {
+  -webkit-box-align: stretch;
+  -ms-flex-align: stretch;
+  align-items: stretch;
+  padding: 14px;
+  box-sizing: border-box;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  position: relative;
+  width: 100%;
+  z-index: 2;
+}
+
+#teaclub .PDD-imageContainer {
+  border-radius: 0px;
+  height: 100px;
+  width: 100px;
+  flex-shrink: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+#teaclub .PDD-image {
+  height: 100%;
+  width: 100%;
+}
+
+#teaclub .PDD-info {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  -webkit-box-flex: 1;
+  -ms-flex-positive: 1;
+  flex-grow: 1;
+  margin-left: 12px;
+}
+
+#teaclub .PDD-titleText {
+  line-height: 20px;
+  max-height: 40px;
+  color: #1a1a1a;
+  font-size: 16px;
+  line-height: 19px;
+  font-weight: 600;
+  font-synthesis: style;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+#teaclub .PDD-tool {
+  margin-top: auto;
+  -webkit-box-align: end;
+  -ms-flex-align: end;
+  align-items: flex-end;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+#teaclub .PDD-toolLeft {
+  margin-right: auto;
+}
+
+#teaclub .PDD-price {
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  color: #FF0036;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 18px;
+  margin-right: auto;
+}
+
+#teaclub .PDD-button--plain.PDD-button--orange {
+  color: #FF0036;
+}
+
+#teaclub .PDD-button--plain {
+  -ms-flex-item-align: start;
+  align-self: flex-start;
+  font-size: 13px;
+  height: 18px;
+  font-weight: 600;
+  font-synthesis: style;
+}
+
+#teaclub .PDD-button {
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+}
+
+#teaclub-slides .slideshow-container {
+  max-width: 1000px;
+  position: relative;
+  margin: auto;
+}
+
+#teaclub-slides .teaClubSlides {
+  display: none;
+}
+
+/* Next & previous buttons */
+#teaclub .prev, #teaclub .next {
+  cursor: pointer;
+  position: absolute;
+  top: 50%;
+  width: auto;
+  margin-top: -22px;
+  padding: 16px;
+  color: white;
+  font-weight: bold;
+  font-size: 18px;
+  transition: 0.6s ease;
+  border-radius: 0 3px 3px 0;
+  user-select: none;
+}
+
+/* Position the "next button" to the right */
+#teaclub .next {
+  right: 0;
+  border-radius: 3px 0 0 3px;
+}
+
+/* On hover, add a black background color with a little bit see-through */
+#teaclub .prev:hover, #teaclub .next:hover {
+  background-color: rgba(0,0,0,0.8);
+}
+
+/* Caption text */
+#teaclub .text {
+  color: #f2f2f2;
+  font-size: 15px;
+  padding: 8px 12px;
+  position: absolute;
+  bottom: 8px;
+  width: 100%;
+  text-align: center;
+}
+
+/* Number text (1/3 etc) */
+#teaclub .number-text {
+  color: #f2f2f2;
+  font-size: 12px;
+  padding: 8px 12px;
+  position: absolute;
+  top: 0;
+}
+
+/* The dots/bullets/indicators */
+#teaclub .dot {
+  cursor: pointer;
+  height: 15px;
+  width: 15px;
+  margin: 0 2px;
+  background-color: #bbb;
+  border-radius: 50%;
+  display: inline-block;
+  transition: background-color 0.6s ease;
+}
+
+#teaclub .active,#teaclub .dot:hover {
+  background-color: #717171;
+}
+
+/* Fading animation */
+#teaclub .fade {
+  -webkit-animation-name: fade;
+  -webkit-animation-duration: 1.5s;
+  animation-name: fade;
+  animation-duration: 1.5s;
+}
+
+@-webkit-keyframes fade {
+  from {opacity: .4}
+  to {opacity: 1}
+}
+
+@keyframes fade {
+  from {opacity: .4}
+  to {opacity: 1}
 }

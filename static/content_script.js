@@ -12,6 +12,18 @@ var observeDOM = (function () {
   };
 })();
 
+Object.defineProperty(Array.prototype, 'chunk', {
+  value: function (chunkSize) {
+    var array = this;
+    return [].concat.apply([],
+      array.map(function (elem, i) {
+        return i % chunkSize ? [] : [array.slice(i, i + chunkSize)];
+      })
+    );
+  }
+});
+
+
 function mockTap(element) {
   let rect = element.getBoundingClientRect()
   sendTouchEvent(rect.x + 3, rect.y + 3, element, 'touchstart');
@@ -86,7 +98,7 @@ function injectScript(file, node) {
   th.appendChild(s);
 }
 
-function injectScriptCode(code, node) {
+function injectScriptCode(code, node = 'body') {
   var th = document.getElementsByTagName(node)[0];
   var script = document.createElement('script');
   script.setAttribute('type', 'text/javascript');
@@ -133,19 +145,48 @@ function addDiscountElement() {
         <img src="https://jjbcdn.zaoshu.so/teaclub/chicken-serching.gif">
         茶友会正在查询优惠券..
       </div>
+      <div id="No-Result" style="display: none;">
+        <div class="coupon-not-found">
+          <img src="https://jjbcdn.zaoshu.so/teaclub/coupon-not-found.jpg"/>遗憾，此商品没找到渠道优惠券
+        </div>
+      </div>
+      <div id="Coupon-box" style="display: none;">
+        <dl class="prop clear">
+        <dt class="metatit">优惠券</dt>
+          <dd id="Coupon-list">
+          </dd>
+        </dl>
+      </div>
+      <div id="PDD-box" style="display: none;">
+        <dl class="prop clear">
+        <dt class="metatit">拼多多同款</dt>
+          <dd id="PDD-goods">
+          </dd>
+        </dl>
+      </div>
+      <div class="information-from">🍵茶友会提供</div>
     </div>
   `);
-  var currentDiv = document.getElementById("J_StepPrice") || document.getElementsByClassName("tb-key")[0]
-  currentDiv.appendChild(newDiv);
+
+  if (document.getElementById("J_isku")) {
+    document.getElementsByClassName("tb-wrap")[0].insertBefore(newDiv, document.getElementById("J_SepLine"));
+  } else {
+    document.getElementsByClassName("tb-wrap")[0].insertBefore(newDiv, document.getElementsByClassName("tm-ser")[0]);
+  }
 }
 
 function addCouponElement(coupon) {
+  let displayCouponName = coupon.name
+  const couponNameParsingResults = /满([0-9]*).([0-9]{2})元减([0-9]*)元/.exec(coupon.name)
+  if (couponNameParsingResults && couponNameParsingResults[2] == "00") {
+    displayCouponName = `满${couponNameParsingResults[1]}元减${couponNameParsingResults[3]}元`
+  }
   var newDiv = createElementFromHTML(`
     <a class="teaclub-coupon" href="${coupon.url}" target="_blank">
       <div class="coupon-bonus-item">
         <div class="coupon-item-left">
           <p class="coupon-item-rmb">
-            <span class="rmb">${coupon.name}</span>
+            <span class="rmb">${displayCouponName}</span>
           </p>
           <p class="coupon-item-surplus">剩余：${coupon.remainCount}</p>
         </div>
@@ -157,28 +198,114 @@ function addCouponElement(coupon) {
       </div>
     </a>
   `);
-  var currentDiv = document.getElementById("teaclub");
+  var currentDiv = document.getElementById("Coupon-list");
   currentDiv.appendChild(newDiv);
 }
 
+function buildGoodsBatch(goodsBatch) {
+  injectScriptCode(
+    `
+    var slideIndex = 1;
 
-function showCoupon(coupon) {
-  console.log('coupon', coupon)
-  if (coupon && coupon.url) {
-    setTimeout(() => {
-      addCouponElement(coupon)
-      document.getElementById("teaclub").getElementsByClassName("loading")[0].style.display = 'none';
-    }, 500);
+    // Next/previous controls
+    function plusSlides(n) {
+      showSlides(slideIndex += n);
+    }
+
+    // Thumbnail image controls
+    function currentSlide(n) {
+      showSlides(slideIndex = n);
+    }
+
+    function showSlides(n) {
+      var i;
+      var slides = document.getElementsByClassName("teaClubSlide");
+      var dots = document.getElementsByClassName("dot");
+      if (n > slides.length) {slideIndex = 1}
+      if (n < 1) {slideIndex = slides.length}
+      for (i = 0; i < slides.length; i++) {
+          slides[i].style.display = "none";
+      }
+      for (i = 0; i < dots.length; i++) {
+          dots[i].className = dots[i].className.replace(" active", "");
+      }
+      if (slides[slideIndex-1]) {
+        slides[slideIndex-1].style.display = "block";
+        dots[slideIndex-1].className += " active";
+      }
+    }
+  `, 'body')
+
+  const goodsBatchDom = goodsBatch.map((goods, index) => {
+    return `<div class="teaClubSlide fade">
+        <div class="number-text">${index} / ${goodsBatch.length}</div>
+        <div class="goodCard-list">
+        ${
+      goods.map((good) => {
+        return buildGoodCard(good)
+      }).join('')
+      }
+        </div>
+      </div>`
+  }).join('')
+  const batchDots = goodsBatch.map((goods, index) => {
+    return `<span class="dot" onclick="currentSlide(${index + 1})"></span>`
+  }).join('')
+
+  let goodsElement = ''
+  if (goodsBatch.length > 1) {
+    goodsElement = createElementFromHTML(`<div id="teaclub-slides">
+      <div class="slideshow-container">
+        ${goodsBatchDom}
+        <a class="prev" onclick="plusSlides(-1)">&#10094;</a>
+        <a class="next" onclick="plusSlides(1)">&#10095;</a>
+      </div>
+      <br>
+      <div style="text-align:center">
+        ${batchDots}
+      </div>
+    </div>`)
   } else {
-    setTimeout(() => {
-      document.getElementById("teaclub").getElementsByClassName("loading")[0].style.display = 'none';
-      document.getElementById("teaclub").innerHTML = `
-        <div class="coupon-not-found">
-          <img src="https://jjbcdn.zaoshu.so/teaclub/coupon-not-found.jpg"/>遗憾，此商品没找到渠道优惠券
-        </div>`
-    }, 2500);
+    goodsElement = createElementFromHTML(goodsBatchDom)
   }
+
+  var currentDiv = document.getElementById("PDD-goods");
+  currentDiv.appendChild(goodsElement);
 }
+
+function buildGoodCard(good) {
+  return `<div>
+    <a class="PDD-card" href="${good.url}" target="_blank">
+    <div class="PDD-cardContainer">
+      <div class="PDD-imageContainer PDD-imageContainer--square"><img class="PDD-image"
+          src="${good.thumbnail}" alt=""></div>
+      <div class="PDD-info">
+        <div class="PDD-title">
+          <div class="PDD-titleText">${good.name}</div>
+          <div class="PDD-tagList PDD-tagList--title">
+            <div class="PDD-tag PDD-tag--source PDD-tag--jingdong PDD-tag--plain">销量：${good.sales}</div>
+          </div>
+        </div>
+        <div class="PDD-tool">
+          <div class="PDD-toolLeft">
+            <div class="PDD-price">￥${good.price}</div>
+          </div>
+          <div class="PDD-button PDD-button--plain PDD-button--orange">
+            去购买
+            <svg
+              class="Zi Zi--ArrowRight" fill="currentColor" viewBox="0 0 24 24" width="16" height="16">
+              <path
+                d="M9.218 16.78a.737.737 0 0 0 1.052 0l4.512-4.249a.758.758 0 0 0 0-1.063L10.27 7.22a.737.737 0 0 0-1.052 0 .759.759 0 0 0-.001 1.063L13 12l-3.782 3.716a.758.758 0 0 0 0 1.063z"
+                fill-rule="evenodd"></path>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </a>
+  </div>`
+}
+
 
 async function findCoupon(disable_find_coupon) {
   if (disable_find_coupon) return
@@ -332,11 +459,11 @@ function fliggyCheckin3(setting) {
     let signInButton = null
     let signInReward = null
     let spanElements = document.getElementsByTagName("span")
-    Array.prototype.slice.call(spanElements).forEach(function(element) {
-      if (element.innerText &&  /^签到\+[0-9]+里程/.test(element.innerText)) {
+    Array.prototype.slice.call(spanElements).forEach(function (element) {
+      if (element.innerText && /^签到\+[0-9]+里程/.test(element.innerText)) {
         signInButton = element
       }
-      if (element.innerText &&  /^明日\+[0-9]+里程/.test(element.innerText)) {
+      if (element.innerText && /^明日\+[0-9]+里程/.test(element.innerText)) {
         signInReward = element
       }
     });
@@ -479,7 +606,7 @@ function accountAlive(type, message) {
     state: "alive",
     message: message,
     type: type
-  }, function(response) {
+  }, function (response) {
     console.log("accountAlive ", type, message, response);
   });
 }
@@ -494,7 +621,7 @@ if (document.getElementById("login-info")) {
 
 // 主任务
 function CheckDom() {
-  if (window.location.host.indexOf("m.taobao.com") > -1 && window.location.host.indexOf("item.taobao.com") < 0 )  {
+  if (window.location.host.indexOf("m.taobao.com") > -1 && window.location.host.indexOf("item.taobao.com") < 0) {
     injectScript(chrome.extension.getURL('/static/touch-emulator.js'), 'body');
     injectScriptCode(`
       setTimeout(function () {
@@ -511,7 +638,7 @@ function CheckDom() {
       state: "failed",
       message: "PC网页需要登录",
       type: "pc"
-    }, function(response) {
+    }, function (response) {
       console.log("Response: ", response);
     });
   }
@@ -522,7 +649,7 @@ function CheckDom() {
       state: "failed",
       message: "移动网页需要登录",
       type: "m"
-    }, function(response) {
+    }, function (response) {
       console.log("Response: ", response);
     });
   }
@@ -535,7 +662,7 @@ function CheckDom() {
     if (orderElements && orderElements.length > 5) {
       orderElements = Array.prototype.slice.call(orderElements).slice(0, 5);
     }
-    Array.prototype.slice.call(orderElements).forEach(function(orderElement) {
+    Array.prototype.slice.call(orderElements).forEach(function (orderElement) {
       if (orderElement.lastElementChild && orderElement.lastElementChild.lastElementChild) {
         let orderId = orderElement.lastElementChild.lastElementChild.innerText
         if (orderId) {
@@ -543,7 +670,7 @@ function CheckDom() {
             chrome.runtime.sendMessage({
               action: "getOrderFliggy",
               orderId: orderId
-            }, function(response) {
+            }, function (response) {
               console.log("Response: ", response);
             });
           }, time)
@@ -591,14 +718,14 @@ function CheckDom() {
         state: "alive",
         message: "金币庄园读取到金币余额",
         type: "m"
-      }, function(response) {
+      }, function (response) {
         console.log("Response: ", response);
       });
     }
     getSetting('task-1_frequency', coinCheckin)
   }
   // 天天抽奖
-  if (window.location.host == 'market.m.taobao.com' && window.location.pathname == "/apps/market/tjb/core-member2.html" ) {
+  if (window.location.host == 'market.m.taobao.com' && window.location.pathname == "/apps/market/tjb/core-member2.html") {
     getSetting('task-5_frequency', coinLottery)
   }
 }
@@ -617,23 +744,56 @@ function checkLoginState() {
 }
 
 
-$( document ).ready(function() {
+$(document).ready(function () {
   console.log('茶友会注入页面成功');
   checkLoginState()
   if (!pageTaskRunning) {
-    setTimeout( function(){
+    setTimeout(function () {
       console.log('茶友会开始执行任务');
       CheckDom()
     }, 2500)
   }
 });
 
+
+function dealWithSearchRes(content) {
+  if (content.coupon) {
+    setTimeout(() => {
+      document.getElementById("Coupon-box").style.display = 'block';
+      addCouponElement(content.coupon)
+      document.getElementById("teaclub").getElementsByClassName("loading")[0].style.display = 'none';
+    }, 500);
+  } else {
+    document.getElementById("Coupon-box").style.display = 'none';
+  }
+  if (content.similarGoods && content.similarGoods.length > 0) {
+    setTimeout(() => {
+      document.getElementById("teaclub").getElementsByClassName("loading")[0].style.display = 'none';
+      document.getElementById("PDD-box").style.display = 'block';
+      buildGoodsBatch(content.similarGoods.chunk(3))
+    }, 500);
+    setTimeout(() => {
+      injectScriptCode(`
+        showSlides(1);
+      `, 'body')
+    }, 520);
+  } else {
+    document.getElementById("PDD-box").style.display = 'none';
+  }
+  if (!content.coupon && (!content.similarGoods || content.similarGoods.length < 1)) {
+    setTimeout(() => {
+      document.getElementById("teaclub").getElementsByClassName("loading")[0].style.display = 'none';
+      document.getElementById("No-Result").style.display = 'block';
+    }, 1500);
+  }
+}
+
 // 应用消息
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
   console.log('onMessage', message)
   switch (message.type) {
     case 'couponInfo':
-      showCoupon(message.coupon)
+      dealWithSearchRes(message.content)
       break;
     default:
       break;
@@ -645,19 +805,19 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
 var passiveSupported = false;
 try {
   var options = Object.defineProperty({}, "passive", {
-    get: function() {
+    get: function () {
       passiveSupported = true;
     }
   });
 
   window.addEventListener("test", null, options);
-} catch(err) {}
+} catch (err) { }
 
-window.addEventListener("message", function(event) {
-    if (event.data && event.data.action == 'productPrice') {
-      findOrderBySkuAndApply(event.data, event.data.setting)
-    }
-  },
+window.addEventListener("message", function (event) {
+  if (event.data && event.data.action == 'productPrice') {
+    findOrderBySkuAndApply(event.data, event.data.setting)
+  }
+},
   passiveSupported ? { passive: true } : false
 );
 
