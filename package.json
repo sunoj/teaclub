@@ -21,7 +21,7 @@
     "gulp-watch": "^4.3.11",
     "hooper": "^0.1.5",
     "jobs": "^0.0.4",
-    "jquery": "3.4",
+    "jquery": "3.5",
     "lodash": "^4.17.13",
     "logline": "^1.1.2",
     "luxon": "^1.4.3",
