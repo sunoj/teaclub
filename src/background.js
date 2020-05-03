@@ -311,9 +311,9 @@ function runJob(taskId, force = false) {
 function openByIframe(src, type, delayTimes = 0) {
   // 加载新的任务
   let iframeId = "iframe"
-  let keepMinutes = 5
+  let keepMinutes = 3
   if (type == 'temporary') {
-    iframeId = 'iframe' + rand(10241024)
+    iframeId = 'iframe' + Math.random().toString(36).substring(7);
     keepMinutes = 1
   }
   // 当前任务过多则等待
@@ -327,7 +327,7 @@ function openByIframe(src, type, delayTimes = 0) {
   resetIframe(iframeId)
   $("#" + iframeId).attr('src', src)
   // 设置重置任务
-  chrome.alarms.create((type == 'temporary' ? 'destroyIframe_' : 'clearIframe_') + iframeId, {
+  chrome.alarms.create(`${(type == 'temporary' ? 'destroyIframe' : 'clearIframe')}_${iframeId}`, {
     delayInMinutes: keepMinutes
   })
 }
@@ -353,9 +353,9 @@ function updateUnreadCount(change = 0) {
 
 $( document ).ready(function() {
   log('background', "document ready")
-  // 每10分钟运行一次定时任务
+  // 每20分钟运行一次定时任务
   chrome.alarms.create('cycleTask', {
-    periodInMinutes: 10
+    periodInMinutes: 20
   })
 
   // 每600分钟完全重载
@@ -659,7 +659,7 @@ function timeoutPromise(promise, ms) {
 // 查找优惠券
 async function searchCoupon(params) {
   try {
-    let response = await timeoutPromise(fetch(`http://127.0.0.1:3824/coupon/search?sku=${params.sku}&keyword=${params.title}&merchant=${params.merchant}`), 5000)
+    let response = await timeoutPromise(fetch(`https://teaclub.zaoshu.so/coupon/search?sku=${params.sku}&keyword=${params.title}&merchant=${params.merchant}`), 10000)
     let details = await response.json();
     return details;
   } catch (error) {

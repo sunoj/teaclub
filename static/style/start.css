@@ -3,6 +3,10 @@
     margin: 0 auto;
 }
 
+.page, body {
+    background-color: var(--weui-BG-0);
+}
+
 .find-coupon{
     width: 100%;
     border: 1px solid #ccc;

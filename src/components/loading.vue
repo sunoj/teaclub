@@ -32,8 +32,8 @@ export default {
 </script>
 <style scoped>
 .timeline-item {
-  background: #fff;
-  border-bottom: 1px solid #f2f2f2;
+  background: #ffffff03;
+  border-bottom: 1px solid #f2f2f22e;
   padding: 25px;
   margin: 0 auto;
 }
@@ -52,13 +52,13 @@ export default {
   animation-name: placeHolderShimmer;
   animation-timing-function: linear;
   background: #f6f7f8;
-  background: linear-gradient(to right, #eeeeee 8%, #dddddd 18%, #eeeeee 33%);
+  background: linear-gradient(to right, #eeeeee42 8%, #dddddd61 18%, #eeeeee3d 33%);
   background-size: 800px 104px;
   height: 40px;
   position: relative;
 }
 .background-masker {
-  background: #fff;
+      background: #ffffff17;
   position: absolute;
 }
 /* Every thing below this is just positioning */

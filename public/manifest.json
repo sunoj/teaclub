@@ -3,7 +3,7 @@
   "name": "茶友会 - 淘宝查券助手",
   "short_name": "茶友会",
   "description": "茶友会是自动为你查找淘宝优惠券，自动签到领淘金币、飞猪里程的多功能购物助手",
-  "version": "{{version}}",
+  "version": "0.2.6",
   "background": {
     "page": "background.html",
     "persistent": true
@@ -20,20 +20,7 @@
         "static/zepto.min.js",
         "static/content_script.js"
       ],
-      "css": [
-        "static/style/content_style.css"
-      ],
       "run_at": "document_end",
-      "all_frames": true
-    },
-    {
-      "run_at": "document_start",
-      "js": [
-        "static/mobile_script.js"
-      ],
-      "matches": [
-        "*://*.m.taobao.com/*"
-      ],
       "all_frames": true
     }
   ],

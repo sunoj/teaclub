@@ -38,7 +38,7 @@
 </template>
 
 <script>
-import { getSetting } from "../static/utils";
+import { getSetting } from "../utils";
 
 export default {
   name: "guide",

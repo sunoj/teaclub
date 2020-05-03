@@ -22,7 +22,7 @@
 
 <script>
 import { DateTime } from 'luxon'
-import { getSetting, saveSetting } from "../static/utils";
+import { getSetting, saveSetting } from "../utils";
 import { Hooper, Slide, Navigation as HooperNavigation } from 'hooper';
 import 'hooper/dist/hooper.css';
 

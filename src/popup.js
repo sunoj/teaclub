@@ -1,8 +1,11 @@
 import * as _ from "lodash"
 $ = window.$ = window.jQuery = require('jquery')
-import tippy from 'tippy.js'
+import 'weui'
 import weui from 'weui.js'
 import Vue from 'vue'
+import microtip from 'microtip/microtip.css'
+
+import '../static/style/popup.css'
 
 $.each(['show', 'hide'], function (i, ev) {
   var el = $.fn[ev];
@@ -12,7 +15,7 @@ $.each(['show', 'hide'], function (i, ev) {
   };
 });
 
-import App from '../components/app.vue';
+import App from './components/app.vue';
 new Vue({
   el: '#app',
   template: '<App/>',
@@ -33,14 +36,11 @@ $( document ).ready(function() {
   // 标记已读
   readMessage()
 
-  // tippy
-  tippy('.tippy')
-
   // 查询最新版本
-  $.getJSON("https://teaclub.zaoshu.so/updates?buildid={{buildid}}&browser={{browser}}&app=teaclub", function (lastVersion) {
+  $.getJSON(`https://teaclub.zaoshu.so/updates?buildid=${process.env.BUILDID}&browser=${process.env.BROWSER}&app=teaclub`, function (lastVersion) {
     if (!lastVersion) return localStorage.removeItem('newVersion')
     let skipBuildId = localStorage.getItem('skipBuildId')
-    let localBuildId = skipBuildId || "{{buildid}}"
+    let localBuildId = skipBuildId || process.env.BUILDID
     // 如果有新版
     if (localBuildId < lastVersion.buildId) {
       localStorage.setItem('newVersion', lastVersion.versionCode)
@@ -65,7 +65,7 @@ $( document ).ready(function() {
             type: 'primary',
             onClick: function () {
               chrome.tabs.create({
-                url: lastVersion.downloadUrl || "https://teaclub.zaoshu.so/updates/latest?browser={{browser}}&app=teaclub"
+                url: lastVersion.downloadUrl || `https://teaclub.zaoshu.so/updates/latest?browser=${process.env.BROWSER}&app=teaclub`
               })
             }
           }]

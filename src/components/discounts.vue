@@ -1,5 +1,5 @@
 <template>
-  <div id="discounts" class="weui-cells contents-box discounts">
+  <div id="discounts" class="contents-box discounts">
     <div class="top-bar">
       <div class="tabs">
         <ul class="tab-list">
@@ -39,11 +39,11 @@
         >关注</a>
       </div>
       <div class="search" v-else>
-        <input v-model="keyword" placeholder="请输入关键词" v-on:keyup.enter="search">
+        <input v-model="keyword" placeholder="输入关键词搜索" v-on:keyup.enter="search">
         <i v-if="showClear" class="circle-close" @click="clear">&times;</i>
       </div>
     </div>
-    <div class="discount-list" v-if="discountList">
+    <div class="weui-cells discount-list" v-if="discountList">
       <events :events="events" v-if="discountTab == 'featured' && events && events.length > 0"></events>
       <div class="discounts-box" v-for="discount in discountList" :key="discount.id">
         <div :class="discount.pinned ? 'discount pinned' : 'discount'">
@@ -81,8 +81,8 @@
             <a
               v-if="discount.couponLink"
               class="get-coupon"
-              v-tippy
-              :title="discount.couponName"
+              data-microtip-position="top" role="tooltip"
+              :aria-label="discount.couponName"
               :href="`${discount.couponLink}`"
               target="_blank"
             >优惠券</a>
@@ -102,7 +102,7 @@
         <p class="tips">商家自荐/优惠爆料可联系微信：cindywchat</p>
       </div>
     </div>
-    <div class="loading" v-else>
+    <div class="loading">
       <loading></loading>
     </div>
   </div>
@@ -110,7 +110,7 @@
 
 <script>
 import { DateTime } from "luxon";
-import { getSetting, readableTime } from "../static/utils";
+import { getSetting, readableTime } from "../utils";
 import loading from "./loading.vue";
 import report from "./report.vue";
 import events from "./events.vue";
@@ -246,7 +246,6 @@ export default {
 .tabs {
   height: 40px;
   width: 200px;
-  background: #fff;
   float: left;
 }
 
@@ -272,7 +271,6 @@ export default {
   padding: 12px 0;
   font-size: 16px;
   line-height: 22px;
-  color: #1a1a1a;
   text-align: center;
   text-decoration: none;
   cursor: pointer;
@@ -303,7 +301,6 @@ export default {
 }
 .tag {
   font-size: 12px;
-  background: #eee;
   color: #696969;
   cursor: pointer;
   padding: 0.5em;
@@ -311,18 +308,15 @@ export default {
 }
 
 .top-bar {
-  position: fixed;
-  width: 430px;
   height: 47px;
-  background: #fff;
-  border-bottom: 1px solid #f0f2f7;
+  border-bottom: 1px solid #eeeeee3d;
   z-index: 10;
+  display: flex;
+  justify-content: space-between;
 }
 
 .select-tag,
 .search {
-  width: 230px;
-  float: right;
   line-height: 50px;
   font-size: 14px;
   text-align: right;
@@ -331,10 +325,8 @@ export default {
 
 .search input {
   -webkit-appearance: none;
-  background-color: #fff;
-  background-image: none;
   border-radius: 4px;
-  border: 1px solid #dcdfe6;
+  border: 1px solid #eeeeee3d;
   box-sizing: border-box;
   color: #606266;
   display: inline-block;
@@ -344,9 +336,9 @@ export default {
   outline: none;
   padding: 0 15px;
   transition: border-color 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
-  width: 70%;
   margin-top: 12px;
   margin-right: 6px;
+  background: #eeeeee42;
 }
 
 .search input:focus {
@@ -376,7 +368,6 @@ export default {
 
 .select-tag span.tag-name {
   font-size: 14px;
-  background: #eee;
   padding: 6px 8px;
   vertical-align: middle;
   color: #737373;
@@ -391,12 +382,8 @@ export default {
   padding-right: 16px;
 }
 .discount-list {
-  margin-top: 50px;
   overflow-y: auto;
   height: 465px;
-}
-.loading {
-  margin-top: 45px;
 }
 
 .discount-list li {
@@ -405,11 +392,10 @@ export default {
 
 .discount-list h5 {
   padding: 0.2em 1em;
-  background: #f3f3f3;
 }
 
 .discount {
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #eeeeee3d;
   padding: 12px 8px;
   position: relative;
 }

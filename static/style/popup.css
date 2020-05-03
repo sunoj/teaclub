@@ -1,3 +1,30 @@
+body.light-mode {
+  background-color: #fff;
+  color: #333;
+  transition: background-color 0.3s ease;
+}
+
+
+@media (prefers-color-scheme:dark) {
+  body:not([data-weui-theme='light']) {
+    background-color: #1a1919;
+    color: #999;
+  }
+
+  body:not([data-weui-theme='light']) .weui-navbar__item.weui-bar__item_on.zaoshu-tab {
+    color: #b9b9b9;
+    background: #661c1a91;
+  }
+}
+
+@media (prefers-color-scheme:light) {
+  body:not([data-weui-theme='dark']) {
+    background-color: #fff;
+    color: #333;
+    transition: background-color 0.3s ease;
+  }
+}
+
 select {
   text-indent: 0.01px;
   text-overflow: '';
@@ -53,15 +80,9 @@ html, body {
 }
 
 .settings {
-  width: 45.5%;
-  float: left;
-  background: #fbfbfb;
-  border-right: 1px solid #eee;
-}
-
-.settings .weui-navbar__item.weui-bar__item_on {
-  background-image: linear-gradient(180deg, #03A9F4, rgba(3, 169, 244, 0.52));
-  color: #fff;
+  width: 45%;
+  background: #cccccc1f;
+  border-right: 1px solid var(--weui-FG-3);
 }
 
 .settings .weui-cell_switch {
@@ -72,36 +93,22 @@ html, body {
 }
 
 .contents {
-  width: 54%;
-  float: right;
+  width: 55%;
   overflow: hidden;
-  background: #fafafa;
   height: 600px;
-}
-
-.contents .weui-navbar__item.weui-bar__item_on {
-  background-image: linear-gradient(180deg,#e6ad00,#FF9800);
-  color: #fff;
 }
 
 .weui-navbar__item.weui-bar__item_on.zaoshu-tab {
   color: #921714;
-  background: #eaeaea;
-  border-bottom: 1px #ccc solid;
 }
 
 .contents .weui-tab {
-  background: #f5f5f5;
   height: 550px;
 }
 
 .weui-cell_switch {
   height: 32px;
   font-size: 16px;
-}
-
-.weui-tabbar__item {
-  padding: 8px 1px 0px;
 }
 
 .contents .weui-tab .weui-badge {
@@ -129,13 +136,13 @@ html, body {
   background: url(../image/empty.svg) no-repeat center 10px;
   padding: 5em 0em;
   text-align: center;
-  color: #ccc;
   margin-top: 10em;
+  opacity: 0.5;
+  padding-top: 7em;
 }
 
 .no_message .tips{
   font-size: 12px;
-  color: #ddd;
   margin-top: .5em;
 }
 
@@ -545,13 +552,10 @@ a.buy-btn:hover {
   margin: 10px 5px;
 }
 
-.weui-navbar+.weui-tab__panel {
-  padding-top: 30px;
-}
-
 .weui-navbar__item {
   padding: 7px 0;
   cursor: pointer;
+  font-size: 15px;
 }
 
 .recommendedLink p {
@@ -668,7 +672,6 @@ img.weui-tabbar__icon {
 
 .contents-box {
   margin-top: 0;
-  padding-bottom: 10px;
 }
 
 .listenVoice {
@@ -771,15 +774,6 @@ button.Button.messages-tab.Button--plain:focus {
   padding-right: 5px;
 }
 
-.message .coupon {
-  background: url(../image/coupon.png) no-repeat;
-  width: 20px;
-  height: 20px;
-  background-size: 20px;
-  display: inline-block;
-  margin-bottom: -3px;
-}
-
 .message .checkin_notice {
   background: url(../image/mileage.png) no-repeat;
   width: 20px;
@@ -800,14 +794,6 @@ button.Button.messages-tab.Button--plain:focus {
   background-size: 20px;
   display: inline-block;
   margin-bottom: -3px;
-}
-
-.message .notice.rebate {
-  background-image: url(../image/rebate.png);
-}
-
-.message .notice.jiabao {
-  background-image: url(../image/money.png);
 }
 
 .coupon-box {
@@ -972,9 +958,8 @@ button.Button.messages-tab.Button--plain:focus {
 
 .bottom-box {
   height: 55px;
-  overflow: hidden;
   border-top: #d4d4d4;
-  background: #f7f7fa;
+  background: #f7f7fa0a;
   position: relative;
 }
 
@@ -986,7 +971,7 @@ button.Button.messages-tab.Button--plain:focus {
   height: 30px;
 }
 
-.bottom-box .avatar .login-state {
+.bottom-box .login-state {
   -webkit-mask: url(../image/avatar.svg) no-repeat center;
   -webkit-mask-size: 30px;
   mask: url(../image/avatar.svg) no-repeat center;
@@ -999,15 +984,15 @@ button.Button.messages-tab.Button--plain:focus {
   background-color: #cecece;
 }
 
-.bottom-box .avatar .login-state.alive {
+.bottom-box .login-state.alive {
   background-color: #41bd2a;
 }
 
-.bottom-box .avatar .login-state.failed {
+.bottom-box .login-state.failed {
   background-color: #f56c6c;
 }
 
-.bottom-box .avatar .login-state.warning {
+.bottom-box .login-state.warning {
   background-color: #f7aa4d;
 }
 
@@ -1194,9 +1179,9 @@ button.Button.messages-tab.Button--plain:focus {
   padding: .2em .5em;
 }
 
-.timeline-item {
-  background: #fff;
-  border-bottom: 1px solid #f2f2f2;
-  padding: 25px;
-  margin: 0 auto;
+
+@media screen and (min-width: 352px) {
+  .weui-dialog {
+      width: 440px;
+  }
 }

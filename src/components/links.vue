@@ -4,8 +4,8 @@
       <a
         v-if="action.type == 'dialog'"
         href="#"
-        data-tippy-placement="top-start"
-        :data-tippy-content="action.description"
+        data-microtip-position="top" role="tooltip"
+        :aria-label="action.description"
         :style="action.linkStyle"
         :class="action.linkClass"
         @click="showDialog(action)"
@@ -13,8 +13,8 @@
       </a>
       <a
         v-if="action.type == 'link'"
-        data-tippy-placement="top-start"
-        :data-tippy-content="action.description"
+        data-microtip-position="top" role="tooltip"
+        :aria-label="action.description"
         :href="action.url"
         :style="action.linkStyle"
         :class="action.linkClass"
@@ -26,7 +26,7 @@
 
 <script>
 import weui from "weui.js";
-import { getSetting } from "../static/utils";
+import { getSetting } from "../utils";
 export default {
   name: "links",
   data() {

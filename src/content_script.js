@@ -1,3 +1,7 @@
+import 'weui';
+import weui from 'weui.js';
+import '../static/style/style.css'
+
 var observeDOM = (function () {
   var MutationObserver = window.MutationObserver || window.WebKitMutationObserver
   return function (obj, callback) {
@@ -363,7 +367,7 @@ function markFliggyCheckin(task, orderId) {
   const value = (document.getElementsByClassName("tlc-title")[0] && document.getElementsByClassName("tlc-title")[0].getElementsByTagName("span")[0]) ? document.getElementsByClassName("tlc-title")[0].getElementsByTagName("span")[0].innerText : null
   console.log('markFliggyCheckin', task, orderId, signRes, value)
   if (signRes && (signRes.indexOf("获得") > -1)) {
-    markCheckinStatus(task, {
+    return markCheckinStatus(task, {
       value: value + '里程',
       orderId: orderId
     }, () => {
@@ -632,27 +636,28 @@ function CheckDom() {
   // 判断登录状态
   checkLoginState()
 
-  if (window.location.host == 'login.taobao.com') {
-    chrome.runtime.sendMessage({
-      action: "saveLoginState",
-      state: "failed",
-      message: "PC网页需要登录",
-      type: "pc"
-    }, function (response) {
-      console.log("Response: ", response);
-    });
-  }
-
-  if (window.location.host == 'login.m.taobao.com') {
-    chrome.runtime.sendMessage({
-      action: "saveLoginState",
-      state: "failed",
-      message: "移动网页需要登录",
-      type: "m"
-    }, function (response) {
-      console.log("Response: ", response);
-    });
-  }
+  setTimeout(() => {
+    if (window.location.host == 'login.taobao.com') {
+      chrome.runtime.sendMessage({
+        action: "saveLoginState",
+        state: "failed",
+        message: "PC网页需要登录",
+        type: "pc"
+      }, function (response) {
+        console.log("Response: ", response);
+      });
+    }
+    if (window.location.host == 'login.m.taobao.com') {
+      chrome.runtime.sendMessage({
+        action: "saveLoginState",
+        state: "failed",
+        message: "移动网页需要登录",
+        type: "m"
+      }, function (response) {
+        console.log("Response: ", response);
+      });
+    }
+  }, 3000);
 
   // 订单
   if (document.title == "已买到的宝贝" && window.location.host == 'buyertrade.taobao.com') {

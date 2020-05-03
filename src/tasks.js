@@ -2,7 +2,6 @@ import {DateTime} from 'luxon'
 import { getLoginState } from './account'
 import { getSetting, readableTime } from './utils'
 
-const priceProUrl = "https://msitepp-fm.jd.com/rest/priceprophone/priceProPhoneMenu"
 const frequencyOptionText = {
   '2h': "每2小时",
   '5h': "每5小时",
@@ -18,24 +17,6 @@ const mapFrequency = {
 
 const tasks = [
   {
-    id: '1',
-    src: {
-      m: 'https://market.m.taobao.com/app/tmall-wireless/tjb-2018/index/index.html',
-    },
-    title: '金币庄园',
-    description: "淘金币每日签到领取",
-    mode: 'iframe',
-    key: "coin",
-    type: ['m'],
-    checkin: true,
-    frequencyOption: ['daily', 'never'],
-    frequency: 'daily',
-    rateLimit:{
-      daily: 5,
-      hour: 2
-    }
-  },
-  {
     id: '6',
     src: {
       pc: 'https://buyertrade.taobao.com/trade/itemlist/list_bought_items.htm',
@@ -48,25 +29,6 @@ const tasks = [
     checkin: true,
     frequencyOption: ['daily', 'never'],
     frequency: 'daily',
-    rateLimit:{
-      daily: 5,
-      hour: 2
-    }
-  },
-  {
-    id: '5', // 失效
-    src: {
-      m: 'https://market.m.taobao.com/apps/market/tjb/core-member2.html',
-    },
-    title: '天天抽奖',
-    description: "淘金币天天抽奖",
-    mode: 'iframe',
-    key: "coin-lottery",
-    type: ['m'],
-    checkin: true,
-    frequencyOption: ['daily', 'never'],
-    frequency: 'daily',
-    deprecated: true,
     rateLimit:{
       daily: 5,
       hour: 2
@@ -202,8 +164,7 @@ let getTasks = function (currentPlatform) {
   return taskList.filter(task => !(task.unavailable || task.deprecated));
 }
 
-module.exports = {
-  priceProUrl,
+export {
   frequencyOptionText,
   mapFrequency,
   tasks,
