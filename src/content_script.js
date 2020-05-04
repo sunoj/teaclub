@@ -89,10 +89,6 @@ function sendTouchEvent(x, y, element, eventType) {
   }
 }
 
-function priceFormatter(price) {
-  return Number(Number(price).toFixed(2))
-}
-
 function injectScript(file, node) {
   var th = document.getElementsByTagName(node)[0];
   var s = document.createElement('script');
@@ -343,17 +339,21 @@ function markCheckinStatus(task, data, cb) {
 
 // 自动登录
 function autoLogin() {
-  document.getElementById("username").focus();
+  document.getElementById("fm-login-id").focus();
   setTimeout(() => {
-    document.getElementById("password").focus();
+    document.getElementById("fm-login-id").blur();
   }, 50);
   setTimeout(() => {
-    console.log('尝试自动登录', document.getElementById("username").value, document.getElementById("password").value)
-    if (document.getElementById("username").value && document.getElementById("password").value) {
-      console.log('正在登录')
-      simulateClick(document.getElementById("btn-submit"), true)
-    }
+    simulateClick(document.getElementById("login").querySelector(".password-login-tab-item"), false)
+    document.getElementById("fm-login-password").focus();
   }, 500);
+  setTimeout(() => {
+    console.log('尝试自动登录')
+    if (document.getElementById("fm-login-id").value && document.getElementById("fm-login-password").value) {
+      console.log('正在登录')
+      simulateClick(document.getElementById("login-form").querySelector("button.password-login"), true)
+    }
+  }, 1500);
 }
 
 
@@ -517,93 +517,6 @@ function fliggyCheckin6(setting) {
   }
 }
 
-// 淘金币
-function markCoinCheckin(task, value) {
-  markCheckinStatus(task, {
-    value: value + '淘金币'
-  }, () => {
-    chrome.runtime.sendMessage({
-      action: "checkin_notice",
-      value: value,
-      reward: 'coin',
-      title: "茶友会自动为您签到领淘金币",
-      content: "恭喜您获得了" + value + '个淘金币奖励'
-    }, function (response) {
-      console.log("Response: ", response);
-    })
-  })
-}
-
-
-function coinCheckin(setting) {
-  if (setting != 'never') {
-    weui.toast('茶友会运行中', 1000);
-    chrome.runtime.sendMessage({
-      action: "updateRunStatus",
-      taskId: 1
-    })
-    let signInButton = document.getElementsByClassName("game-coin-sign-ball")[0] ? document.getElementsByClassName("game-coin-sign-ball")[0].getElementsByClassName("icon-coin")[0] : null
-    let getWaterIcon = document.getElementsByClassName("game-icon large")[0]
-    if (getWaterIcon) {
-      setTimeout(() => {
-        simulateClick(getWaterIcon)
-      }, 500);
-      setTimeout(() => {
-        if (document.getElementsByClassName("item-container")[0]) {
-          let punchBtn = document.getElementsByClassName("item-container")[0].getElementsByClassName("btn")[0]
-          if (punchBtn && punchBtn.innerText == "打卡") {
-            simulateClick(punchBtn)
-          } else if (punchBtn && punchBtn.innerText == "已完成") {
-            markCheckinStatus({
-              key: 'coin',
-              id: 1
-            })
-          }
-        }
-      }, 1500);
-    }
-    if (signInButton && signInButton.innerText) {
-      simulateClick(signInButton)
-      // 监控结果
-      setTimeout(function () {
-        markCoinCheckin({
-          key: 'coin',
-          id: 1
-        }, signInButton.innerText)
-      }, 1000)
-    }
-  }
-}
-
-// 5: 天天抽奖
-function coinLottery(setting) {
-  if (setting != 'never') {
-    weui.toast('茶友会运行中', 1000);
-    chrome.runtime.sendMessage({
-      action: "updateRunStatus",
-      taskId: 5
-    })
-    let signInButton = document.getElementsByClassName("button_text_size")[0]
-    if (signInButton && signInButton.innerText && signInButton.innerText == "抽奖") {
-      simulateClick(signInButton)
-      // 监控结果
-      setTimeout(function () {
-        markFliggyCheckin({
-          key: 'coin-lottery',
-          id: 5
-        })
-      }, 1000)
-    } else {
-      if (signInButton && signInButton.innerText == "已签到") {
-        markCheckinStatus({
-          key: 'coin-lottery',
-          id: 5
-        })
-      }
-    }
-  }
-}
-
 function accountAlive(type, message) {
   chrome.runtime.sendMessage({
     action: "saveLoginState",
@@ -621,6 +534,12 @@ if (document.getElementById("login-info")) {
       accountAlive('pc', 'PC网页检测到用户名')
     }
   });
+}
+
+if (document.getElementById("mytaobao-panel")) {
+  if (document.getElementsByClassName("J_SiteNavUserAvatar")[0]) {
+    accountAlive('pc', 'PC网页检测到用户头像')
+  }
 }
 
 // 主任务
@@ -657,7 +576,7 @@ function CheckDom() {
         console.log("Response: ", response);
       });
     }
-  }, 3000);
+  }, 5000);
 
   // 订单
   if (document.title == "已买到的宝贝" && window.location.host == 'buyertrade.taobao.com') {
@@ -686,7 +605,7 @@ function CheckDom() {
   }
 
   // 登录页面
-  if (window.location.host == 'login.m.taobao.com') {
+  if (window.location.host.indexOf('login') > -1) {
     setTimeout(() => {
       autoLogin()
     }, 2500);
@@ -713,25 +632,6 @@ function CheckDom() {
   };
   if (document.title == "会员中心" && window.location.host == 'h5.m.taobao.com') {
     getSetting('task-4_frequency', fliggyCheckin3)
-  }
-  // 淘金币
-  if (document.title == "金币庄园" && window.location.host == 'market.m.taobao.com') {
-    // 登录状态
-    if (document.getElementsByClassName("coins")[0] && document.getElementsByClassName("coins")[0].getElementsByClassName("num")[0]) {
-      chrome.runtime.sendMessage({
-        action: "saveLoginState",
-        state: "alive",
-        message: "金币庄园读取到金币余额",
-        type: "m"
-      }, function (response) {
-        console.log("Response: ", response);
-      });
-    }
-    getSetting('task-1_frequency', coinCheckin)
-  }
-  // 天天抽奖
-  if (window.location.host == 'market.m.taobao.com' && window.location.pathname == "/apps/market/tjb/core-member2.html") {
-    getSetting('task-5_frequency', coinLottery)
   }
 }
 
