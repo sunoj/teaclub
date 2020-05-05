@@ -27,16 +27,16 @@
         <div class="tag-box">
           <span class="tag-name">{{selectTag.name}}</span>
         </div>
-        <a
+        <button
           v-if="followed"
-          class="weui-btn weui-btn_mini weui-btn_plain-disabled"
+          class="weui-btn weui-btn_mini weui-btn_disabled"
           @click="unfollowTag(selectTag)"
-        >取消</a>
-        <a
+        >取消</button>
+        <button
           v-else
-          class="weui-btn weui-btn_mini weui-btn_plain-primary"
+          class="weui-btn weui-btn_mini weui-btn_primary"
           @click="followTag(selectTag)"
-        >关注</a>
+        >关注</button>
       </div>
       <div class="search" v-else>
         <input v-model="keyword" placeholder="输入关键词搜索" v-on:keyup.enter="search">
@@ -49,7 +49,7 @@
         <div :class="discount.pinned ? 'discount pinned' : 'discount'">
           <div class="title" @mouseover="discount.focus = true" @mouseout="discount.focus = false">
             <span class="merchant" v-if="discount.merchant">
-              <img :src="discount.merchant.icon" :alt="discount.merchant.name">
+              <img v-lazy="discount.merchant.icon" :alt="discount.merchant.name">
             </span>
             <a :href="`${discount.goodLink}`" target="_blank">{{discount.title}}</a>
             <span class="discount_price">{{discount.price}}</span>
@@ -59,7 +59,7 @@
             <a :href="`${discount.goodLink}`" target="_blank">
               <img
                 v-if="discount.photo"
-                :src="`${discount.photo}`"
+                v-lazy="`${discount.photo}`"
                 @error.once="backup_picture($event)"
                 width="75"
                 class="discount-photo backup_picture"
@@ -90,6 +90,10 @@
           </div>
         </div>
       </div>
+      <infinite-loading v-if="discountList.length > 20" spinner="waveDots" @infinite="infiniteHandler">
+        <div slot="no-more" class="no-more">😭暂时没有近期优惠了</div>
+        <div slot="no-results" class="no-results">😭没有更多优惠信息了</div>
+      </infinite-loading>
       <div v-if="discountTab == 'concerned' && followedTagIds.length < 1" class="no_message">
         <h4>暂时还没有关注任何标签</h4>
         <p class="tips">点击优惠信息中的标签可以筛选并关注标签哦</p>
@@ -110,6 +114,7 @@
 
 <script>
 import { DateTime } from "luxon";
+import InfiniteLoading from 'vue-infinite-loading';
 import { getSetting, readableTime } from "../utils";
 import loading from "./loading.vue";
 import report from "./report.vue";
@@ -117,13 +122,14 @@ import events from "./events.vue";
 
 export default {
   name: "discounts",
-  components: { loading, report, events },
+  components: { loading, report, events, InfiniteLoading },
   data() {
     return {
       followedTagIds: getSetting("followedTagIds", []),
       discountTab: "featured",
       discountList: null,
       selectTag: null,
+      page: 1,
       keyword: null
     };
   },
@@ -143,20 +149,55 @@ export default {
     },
     events: function() {
       return this.discountList ? this.discountList.filter(discount => discount.event) : [];
+    },
+    condition: function() {
+      if (this.keyword) {
+        return {
+          keyword: this.keyword
+        }
+      }
+      switch (this.discountTab) {
+        case "featured":
+          return {
+            all: false
+          };
+          break;
+        case "concerned":
+          if (this.followedTagIds.length > 0) {
+            return {
+              tagIds: this.followedTagIds.join(",")
+            };
+          } else {
+            return {};
+          }
+          break;
+        case "hot":
+          return {
+            hot: true
+          };
+          break;
+        default:
+          break;
+      }
+      return {}
     }
   },
   methods: {
     backup_picture: function(e) {
       e.currentTarget.src = "https://jjbcdn.zaoshu.so/web/img_error.png";
     },
-    getDiscounts: async function(condition) {
-      this.discountList = null;
-      this.selectTag = null;
-      let queryParams = new URLSearchParams(condition);
+    loadDiscountFormApi: async function(params) {
+      let queryParams = new URLSearchParams(params);
       let response = await fetch(
         `https://teaclub.zaoshu.so/discount?${queryParams.toString()}`
       );
-      let discounts = await response.json();
+      return await response.json();
+    },
+    getDiscounts: async function(condition) {
+      this.discountList = null;
+      this.selectTag = null;
+      this.page = 1
+      const discounts = await this.loadDiscountFormApi(condition)
       this.discountList = discounts.map(function(discount) {
         discount.displayTime = readableTime(
           DateTime.fromISO(discount.createdAt)
@@ -167,10 +208,27 @@ export default {
       localStorage.setItem("readDiscountAt", new Date());
       this.$forceUpdate();
     },
+    infiniteHandler: async function ($state) {
+      if (this.selectTag) return $state.complete();
+      const discounts = await this.loadDiscountFormApi(Object.assign({}, this.condition, {
+        page: this.page,
+      }))
+      if (discounts.length) {
+        this.page += 1;
+        this.discountList.push(...discounts.map(function(discount) {
+          discount.displayTime = readableTime(
+            DateTime.fromISO(discount.createdAt)
+          );
+          discount.focus = false
+          return discount;
+        }));
+        $state.loaded();
+      } else {
+        $state.complete();
+      }
+    },
     search: async function() {
-      this.getDiscounts({
-        keyword: this.keyword
-      });
+      this.getDiscounts(this.condition);
     },
     clear: async function() {
       this.keyword = null;
@@ -179,6 +237,7 @@ export default {
     filterByTag: async function(tag) {
       this.discountTab = null;
       this.discountList = null;
+      this.page = 1
       let response = await fetch(
         `https://teaclub.zaoshu.so/discount/tag/${tag.id}`
       );
@@ -191,7 +250,6 @@ export default {
         discount.focus = false
         return discount;
       });
-      localStorage.setItem("readDiscountAt", new Date());
       this.$forceUpdate();
     },
     unfollowTag: async function(tag) {
@@ -214,28 +272,10 @@ export default {
     switchTab: async function(type) {
       this.discountTab = type;
       this.selectTag = null;
-      switch (type) {
-        case "featured":
-          this.getDiscounts({
-            all: false
-          });
-          break;
-        case "concerned":
-          if (this.followedTagIds.length > 0) {
-            this.getDiscounts({
-              tagIds: this.followedTagIds.join(",")
-            });
-          } else {
-            this.discountList = [];
-          }
-          break;
-        case "hot":
-          this.getDiscounts({
-            hot: true
-          });
-          break;
-        default:
-          break;
+      if (type == "concerned" && this.followedTagIds.length < 1) {
+        this.discountList = []
+      } else {
+        this.getDiscounts(this.condition);
       }
     }
   }
@@ -326,7 +366,7 @@ export default {
 .search input {
   -webkit-appearance: none;
   border-radius: 4px;
-  border: 1px solid #eeeeee3d;
+  border: 1px solid #0000003d;
   box-sizing: border-box;
   color: #606266;
   display: inline-block;
@@ -384,6 +424,7 @@ export default {
 .discount-list {
   overflow-y: auto;
   height: 465px;
+  margin-top: 0;
 }
 
 .discount-list li {
@@ -477,5 +518,11 @@ export default {
 
 .weui-cells:after{
   border-bottom: none
+}
+
+.no-more, .no-results{
+    color: #666;
+    padding: 3px;
+    font-size: 14px;
 }
 </style>

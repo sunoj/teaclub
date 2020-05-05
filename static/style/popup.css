@@ -1,14 +1,12 @@
-body.light-mode {
-  background-color: #fff;
-  color: #333;
-  transition: background-color 0.3s ease;
-}
-
 
 @media (prefers-color-scheme:dark) {
   body:not([data-weui-theme='light']) {
     background-color: #1a1919;
     color: #999;
+  }
+
+  body:not([data-weui-theme='light']) .messages, body:not([data-weui-theme='light']) .discounts {
+    background-color: transparent;
   }
 
   body:not([data-weui-theme='light']) .weui-navbar__item.weui-bar__item_on.zaoshu-tab {

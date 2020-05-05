@@ -185,6 +185,7 @@ function addCouponElement(coupon) {
     <a class="teaclub-coupon" href="${coupon.url}" target="_blank">
       <div class="coupon-bonus-item">
         <div class="coupon-item-left">
+          <img class="qrcode" src="${`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${coupon.shortUrl}&bgcolor=de1d3d`}">
           <p class="coupon-item-rmb">
             <span class="rmb">${displayCouponName}</span>
           </p>

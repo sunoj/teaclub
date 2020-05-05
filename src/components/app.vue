@@ -626,11 +626,12 @@ export default {
   display: flex;
   justify-content: space-between;
 }
-.messages,
-.discounts {
+.messages, .discounts {
   overflow: hidden;
   height: 515px;
+  background: #f9f9f9;
 }
+
 .message-items {
   margin-top: 10px;
   height: 504px;

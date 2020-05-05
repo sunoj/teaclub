@@ -64,6 +64,13 @@ a.teaclub-coupon:hover {
   vertical-align: middle;
 }
 
+#teaclub .qrcode{
+  width: 60px;
+  display: block;
+  float: left;
+  padding: 5px;
+}
+
 .teaclub-discount {
   padding: 10px;
   background-color: #FFF2E8;

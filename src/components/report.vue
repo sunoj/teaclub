@@ -1,6 +1,6 @@
 <template>
 <div class="reprot">
-  <div class="report-mask" @click="hide"></div>
+  <div class="report-mask" @click="hide" v-if="show"></div>
   <div class="report-problem" :ref="`report-${discount.id}`">
     <div class="report-icon" data-microtip-position="bottom-right" role="tooltip" aria-label="反馈问题" @click="showList">
       <span>i</span>

@@ -16,6 +16,9 @@ $.each(['show', 'hide'], function (i, ev) {
 });
 
 import App from './components/app.vue';
+import VueLazyload from 'vue-lazyload'
+
+Vue.use(VueLazyload)
 new Vue({
   el: '#app',
   template: '<App/>',
