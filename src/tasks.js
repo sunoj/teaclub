@@ -88,6 +88,24 @@ const tasks = [
       daily: 5,
       hour: 2
     }
+  },
+  {
+    id: '7',
+    src: {
+      m: 'https://h5.m.taobao.com/trip/welfare-center/mileage/index.html',
+    },
+    title: '飞猪里程5',
+    description: "飞猪签到领里程",
+    mode: 'iframe',
+    key: "welfare-center",
+    type: ['m'],
+    checkin: true,
+    frequencyOption: ['daily', 'never'],
+    frequency: 'daily',
+    rateLimit:{
+      daily: 5,
+      hour: 2
+    }
   }
 ]
 

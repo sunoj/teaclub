@@ -337,26 +337,6 @@ function markCheckinStatus(task, data, cb) {
 }
 
 
-// 自动登录
-function autoLogin() {
-  document.getElementById("fm-login-id").focus();
-  setTimeout(() => {
-    document.getElementById("fm-login-id").blur();
-  }, 50);
-  setTimeout(() => {
-    simulateClick(document.getElementById("login").querySelector(".password-login-tab-item"), false)
-    document.getElementById("fm-login-password").focus();
-  }, 500);
-  setTimeout(() => {
-    console.log('尝试自动登录')
-    if (document.getElementById("fm-login-id").value && document.getElementById("fm-login-password").value) {
-      console.log('正在登录')
-      simulateClick(document.getElementById("login-form").querySelector("button.password-login"), true)
-    }
-  }, 1500);
-}
-
-
 // *********
 // 签到任务
 // *********
@@ -365,6 +345,7 @@ function autoLogin() {
 function markFliggyCheckin(task, orderId) {
   const signRes = document.getElementsByClassName("tlc-title")[0] && document.getElementsByClassName("tlc-title")[0].innerText
   const value = (document.getElementsByClassName("tlc-title")[0] && document.getElementsByClassName("tlc-title")[0].getElementsByTagName("span")[0]) ? document.getElementsByClassName("tlc-title")[0].getElementsByTagName("span")[0].innerText : null
+
   console.log('markFliggyCheckin', task, orderId, signRes, value)
   if (signRes && (signRes.indexOf("获得") > -1)) {
     return markCheckinStatus(task, {
@@ -517,6 +498,34 @@ function fliggyCheckin6(setting) {
   }
 }
 
+function fliggyCheckin7(setting) {
+  if (setting != 'never') {
+    weui.toast('茶友会运行中', 1000);
+    chrome.runtime.sendMessage({
+      action: "updateRunStatus",
+      taskId: 7
+    })
+    let signInButton = document.getElementsByClassName("check-btn")[0]
+    if (signInButton && signInButton.innerText && signInButton.innerText == "立即签到") {
+      simulateClick(signInButton)
+      // 监控结果
+      observeDOM(document.body, function () {
+        markFliggyCheckin({
+          key: 'welfare-center',
+          id: 7
+        })
+      })
+    } else {
+      if (signInButton && signInButton.innerText == "上飞猪App领更多") {
+        markCheckinStatus({
+          key: 'welfare-center',
+          id: 7
+        })
+      }
+    }
+  }
+}
+
 function accountAlive(type, message) {
   chrome.runtime.sendMessage({
     action: "saveLoginState",
@@ -536,12 +545,6 @@ if (document.getElementById("login-info")) {
   });
 }
 
-if (document.getElementById("mytaobao-panel")) {
-  if (document.getElementsByClassName("J_SiteNavUserAvatar")[0]) {
-    accountAlive('pc', 'PC网页检测到用户头像')
-  }
-}
-
 // 主任务
 function CheckDom() {
   if (window.location.host.indexOf("m.taobao.com") > -1 && window.location.host.indexOf("item.taobao.com") < 0) {
@@ -553,7 +556,9 @@ function CheckDom() {
     `, 'body')
   }
   // 判断登录状态
-  checkLoginState()
+  setTimeout(() => {
+    checkLoginState()
+  },1000)
 
   setTimeout(() => {
     if (window.location.host == 'login.taobao.com') {
@@ -576,7 +581,7 @@ function CheckDom() {
         console.log("Response: ", response);
       });
     }
-  }, 5000);
+  }, 8000);
 
   // 订单
   if (document.title == "已买到的宝贝" && window.location.host == 'buyertrade.taobao.com') {
@@ -585,6 +590,9 @@ function CheckDom() {
     // 只处理最近五个订单
     if (orderElements && orderElements.length > 5) {
       orderElements = Array.prototype.slice.call(orderElements).slice(0, 5);
+    }
+    if (orderElements) {
+      accountAlive('pc', 'PC网页检测订单')
     }
     Array.prototype.slice.call(orderElements).forEach(function (orderElement) {
       if (orderElement.lastElementChild && orderElement.lastElementChild.lastElementChild) {
@@ -604,12 +612,6 @@ function CheckDom() {
     });
   }
 
-  // 登录页面
-  if (window.location.host.indexOf('login') > -1) {
-    setTimeout(() => {
-      autoLogin()
-    }, 2500);
-  }
   // 商品页
   if (window.location.host.indexOf('item.taobao.com') > -1 || window.location.host.indexOf('detail.tmall.com') > -1) {
     setTimeout(() => {
@@ -633,6 +635,9 @@ function CheckDom() {
   if (document.title == "会员中心" && window.location.host == 'h5.m.taobao.com') {
     getSetting('task-4_frequency', fliggyCheckin3)
   }
+  if (document.title == "里程福利中心" && window.location.host == 'h5.m.taobao.com') {
+    getSetting('task-7_frequency', fliggyCheckin7)
+  }
 }
 
 
@@ -642,9 +647,19 @@ function checkLoginState() {
   if (document.getElementById("mtb-nickname") && document.getElementById("mtb-nickname").value || document.getElementsByClassName("J_MemberNick")[0]) {
     accountAlive('pc', 'PC网页检测到用户名')
   }
+  if (document.getElementById("J_SiteNavLogin")) {
+    if (document.getElementById("J_SiteNavLogin").querySelector(".site-nav-login-info-nick ").textContent) {
+      accountAlive('pc', 'PC网页检测到用户头像')
+    }
+  }
   // M 是否登录
   if (document.getElementsByClassName("tb-toolbar-container")[0] || window.location.href == "https://h5.m.taobao.com/mlapp/mytaobao.html") {
     accountAlive('m', '移动端打开我的淘宝')
+  }
+  if (window.location.href == "https://main.m.taobao.com/mytaobao/index.html") {
+    if (document.getElementsByClassName(".main-layout")[0].querySelector(".tpl-wrapper")) {
+      accountAlive('m', '移动端打开我的淘宝')
+    }
   }
 }
 
