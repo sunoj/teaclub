@@ -40,7 +40,6 @@
     "webRequest",
     "webRequestBlocking",
     "alarms",
-    "tabs",
     "contextMenus",
     "notifications"
   ]

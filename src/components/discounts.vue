@@ -102,7 +102,7 @@
         <p class="tips">商家自荐/优惠爆料可联系微信：cindywchat</p>
       </div>
     </div>
-    <div class="loading">
+    <div class="loading" v-else>
       <loading></loading>
     </div>
   </div>
@@ -473,5 +473,9 @@ export default {
 .discount a.go-buy:hover {
   color: #fff;
   background: #149813;
+}
+
+.weui-cells:after{
+  border-bottom: none
 }
 </style>

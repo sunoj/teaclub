@@ -102,6 +102,11 @@ html, body {
   color: #921714;
 }
 
+.weui-navbar__item.weui-bar__item_on{
+  color: var(--weui-BG-4);
+  font-weight: bold;
+}
+
 .contents .weui-tab {
   height: 550px;
 }
@@ -556,6 +561,7 @@ a.buy-btn:hover {
   padding: 7px 0;
   cursor: pointer;
   font-size: 15px;
+  color: var(--weui-TAG-TEXT-BLACK);
 }
 
 .recommendedLink p {

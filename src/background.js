@@ -127,7 +127,6 @@ chrome.alarms.onAlarm.addListener(function( alarm ) {
       break;
     // 周期运行（10分钟）
     case alarm.name == 'cycleTask':
-      clearPinnedTabs()
       findJobs()
       runJob()
       updateIcon()
@@ -385,24 +384,6 @@ function openWebPageAsMobile(url) {
   });
 }
 
-// 清除不需要的tab
-function clearPinnedTabs() {
-  chrome.tabs.query({
-    pinned: true
-  }, function (tabs) {
-    var tabIds = $.map(tabs, function (tab) {
-      if (tab && tab.url.indexOf('jd.com') !== -1) {
-        return tab.id
-      }
-    })
-
-    // opera doesn't remove pinned tabs, so lets first unpin
-    $.map(tabIds, function (tabId) {
-        chrome.tabs.update(tabId, {"pinned":false}, function(theTab){ chrome.tabs.remove(theTab.id); });
-    })
-  })
-}
-
 // 点击通知
 chrome.notifications.onClicked.addListener(function (notificationId) {
   if (notificationId.split('_').length > 0) {
@@ -489,7 +470,7 @@ function updateIcon() {
 
 function openLoginPage() {
   chrome.tabs.create({
-    url: "https://i.taobao.com/my_taobao.htm"
+    url: "https://buyertrade.taobao.com/trade/itemlist/list_bought_items.htm"
   })
 }
 

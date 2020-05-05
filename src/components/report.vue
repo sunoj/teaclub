@@ -1,6 +1,8 @@
 <template>
-  <div class="report-problem" :ref="`report-${discount.id}`" v-show="discount.focus">
-    <div class="report-icon" @click="showList">
+<div class="reprot">
+  <div class="report-mask" @click="hide"></div>
+  <div class="report-problem" :ref="`report-${discount.id}`">
+    <div class="report-icon" data-microtip-position="bottom-right" role="tooltip" aria-label="反馈问题" @click="showList">
       <span>i</span>
     </div>
     <div :class="`weui-cells weui-cells_radio ${leftList ? 'turn-left': ''}`" v-if="show">
@@ -54,6 +56,7 @@
       </label>
       <button class="report-btn" @click="sendReport" v-show="code">发送反馈</button>
     </div>
+</div>
   </div>
 </template>
 
@@ -75,6 +78,9 @@ export default {
       if (this.$refs[`report-${this.discount.id}`].offsetLeft > 300) {
         this.leftList = true;
       }
+    },
+    hide: async function() {
+      this.show = false
     },
     sendReport: async function() {
       try {
@@ -103,9 +109,36 @@ export default {
 };
 </script>
 <style scoped>
+
+.reprot{
+  display: inline;
+}
+
+.report-icon {
+  display: none
+}
+
+.discounts-box:hover .report-icon {
+  display: inline-block
+}
+
+.discounts-box:hover .report-problem{
+  display: inline;
+}
+
+.report-mask {
+      width: 100%;
+    height: 100%;
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
 .report-problem {
+  z-index: 5;
   position: absolute;
-  display: inline-block;
+  display: none;
   margin-left: 5px;
 }
 
