@@ -21,8 +21,7 @@ import VueLazyload from 'vue-lazyload'
 Vue.use(VueLazyload)
 new Vue({
   el: '#app',
-  template: '<App/>',
-  components: { App }
+  render: h => h(App)
 })
 
 // 消息已读

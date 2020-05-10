@@ -649,7 +649,7 @@ function checkLoginState() {
     accountAlive('pc', 'PC网页检测到用户名')
   }
   if (document.getElementById("J_SiteNavLogin")) {
-    if (document.getElementById("J_SiteNavLogin").querySelector(".site-nav-login-info-nick ").textContent) {
+    if (document.getElementById("J_SiteNavLogin").querySelector(".site-nav-login-info-nick") && document.getElementById("J_SiteNavLogin").querySelector(".site-nav-login-info-nick").text) {
       accountAlive('pc', 'PC网页检测到用户头像')
     }
   }

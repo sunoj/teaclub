@@ -2,8 +2,8 @@
   "manifest_version": 2,
   "name": "茶友会 - 淘宝查券助手",
   "short_name": "茶友会",
-  "description": "茶友会是自动为你查找淘宝优惠券，自动签到领淘金币、飞猪里程的多功能购物助手",
-  "version": "0.2.6",
+  "description": "茶友会是自动为你查找淘宝优惠券，自动签到领飞猪里程的多功能购物助手",
+  "version": "0.3.1",
   "background": {
     "page": "background.html",
     "persistent": true
