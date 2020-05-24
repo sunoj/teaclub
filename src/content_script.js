@@ -177,7 +177,7 @@ function addDiscountElement() {
 
 function addCouponElement(coupon) {
   let displayCouponName = coupon.name
-  const couponNameParsingResults = /满([0-9]*).([0-9]{2})元减([0-9]*)元/.exec(coupon.name)
+  const couponNameParsingResults = /满([0-9]*).([0-9]{2})元减([0-9]*).?([0-9]{2})?元/.exec(coupon.name)
   if (couponNameParsingResults && couponNameParsingResults[2] == "00") {
     displayCouponName = `满${couponNameParsingResults[1]}元减${couponNameParsingResults[3]}元`
   }

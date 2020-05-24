@@ -615,6 +615,9 @@ function loadRecommendSettingsToLocalStorage() {
     } else {
       localStorage.removeItem('recommendedLinks')
     }
+    if (json.uninstallURL) {
+      chrome.runtime.setUninstallURL(json.uninstallURL)
+    }
     if (json.recommendServices && json.recommendServices.length > 0) {
       saveSetting('recommendServices', json.recommendServices)
     }
