@@ -76,8 +76,11 @@ export default {
     },
     getEvents: function() {
       let events = getSetting("events", []);
-      events = events.filter(event => DateTime.fromJSDate(new Date(event.validUntil)) > DateTime.local());
-      saveSetting("events", events);
+      events = events.filter(event => {
+        const isValid = event.validUntil ? DateTime.fromJSDate(new Date(event.validUntil)) > DateTime.local() : true
+        const isStarted = event.startAt ? DateTime.fromJSDate(new Date(event.startAt)) < DateTime.local() : true
+        return isValid && isStarted
+      });
       this.events = events
       return events;
     },
@@ -89,6 +92,8 @@ export default {
   position: absolute;
   width: 100%;
   height: 100%;
+  top: 0;
+  left: 0;
 }
 .preload{
   display: none;

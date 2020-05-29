@@ -13,12 +13,6 @@ module.exports = {
       class: "el-tag el-tag--success"
     },
     {
-      link: "https://www.boslife.me/aff.php?aff=435",
-      title: "科学上网服务",
-      description: "小明使用2年的科学上网服务",
-      class: "el-tag el-tag--warning"
-    },
-    {
       link: "https://promotion.aliyun.com/ntms/yunparter/invite.html?userCode=sqj7d3bm",
       title: "阿里云优惠券",
       description: "领取阿里云全品类优惠券",

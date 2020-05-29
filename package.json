@@ -26,6 +26,7 @@
     "luxon": "^1.4.3",
     "microtip": "^0.2.2",
     "parcel-bundler": "^1.12.3",
+    "qrcode-svg": "^1.1.0",
     "vue": "^2.6.11",
     "vue-infinite-loading": "^2.4.5",
     "vue-lazyload": "^1.3.3",

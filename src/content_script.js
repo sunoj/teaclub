@@ -1,5 +1,7 @@
 import 'weui';
 import weui from 'weui.js';
+import QRCode from "qrcode-svg";
+
 import '../static/style/style.css'
 
 var observeDOM = (function () {
@@ -164,6 +166,13 @@ function addDiscountElement() {
           </dd>
         </dl>
       </div>
+      <div id="specialEvent-box" style="display: none;">
+        <dl class="prop clear">
+        <dt class="metatit">活动推荐</dt>
+          <dd id="specialEvent-container">
+          </dd>
+        </dl>
+      </div>
       <div class="information-from">🍵茶友会提供</div>
     </div>
   `);
@@ -177,15 +186,21 @@ function addDiscountElement() {
 
 function addCouponElement(coupon) {
   let displayCouponName = coupon.name
-  const couponNameParsingResults = /满([0-9]*).([0-9]{2})元减([0-9]*).?([0-9]{2})?元/.exec(coupon.name)
+  const couponNameParsingResults = /满([0-9]*)(.[0-9]{2})?元减([0-9]*)(.[0-9]{2})?元/.exec(coupon.name)
   if (couponNameParsingResults && couponNameParsingResults[2] == "00") {
     displayCouponName = `满${couponNameParsingResults[1]}元减${couponNameParsingResults[3]}元`
   }
+  const couponQrcode = new QRCode({
+    width: 70,
+    height: 70,
+    background: "#de1d3d",
+    content: coupon.shortUrl
+  }).svg();
   var newDiv = createElementFromHTML(`
     <a class="teaclub-coupon" href="${coupon.url}" target="_blank">
       <div class="coupon-bonus-item">
         <div class="coupon-item-left">
-          <img class="qrcode" src="${`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${coupon.shortUrl}&bgcolor=de1d3d`}">
+          <div class="qrcode">${couponQrcode}</div>
           <p class="coupon-item-rmb">
             <span class="rmb">${displayCouponName}</span>
           </p>
@@ -275,11 +290,18 @@ function buildGoodsBatch(goodsBatch) {
 }
 
 function buildGoodCard(good) {
+  const goodQrcode = new QRCode({
+    width: 100,
+    height: 100,
+    content: good.url
+  }).svg();
   return `<div>
     <a class="PDD-card" href="${good.url}" target="_blank">
     <div class="PDD-cardContainer">
-      <div class="PDD-imageContainer PDD-imageContainer--square"><img class="PDD-image"
-          src="${good.thumbnail}" alt=""></div>
+      <div class="PDD-qrcode">${goodQrcode}</div>
+      <div class="PDD-imageContainer PDD-imageContainer--square">
+        <img class="PDD-image" src="${good.thumbnail}" alt=""/>
+      </div>
       <div class="PDD-info">
         <div class="PDD-title">
           <div class="PDD-titleText">${good.name}</div>
@@ -549,17 +571,19 @@ if (document.getElementById("login-info")) {
 // 主任务
 function CheckDom() {
   if (window.location.host.indexOf("m.taobao.com") > -1 && window.location.host.indexOf("item.taobao.com") < 0) {
-    injectScript(chrome.extension.getURL('/static/touch-emulator.js'), 'body');
-    injectScriptCode(`
-      setTimeout(function () {
-        TouchEmulator();
-      }, 200)
-    `, 'body')
+    if (window.location.host != "market.m.taobao.com") {
+      injectScript(chrome.extension.getURL('/static/touch-emulator.js'), 'body');
+      injectScriptCode(`
+        setTimeout(function () {
+          TouchEmulator();
+        }, 200)
+      `, 'body')
+    }
   }
   // 判断登录状态
   setTimeout(() => {
     checkLoginState()
-  },1000)
+  }, 1000)
 
   setTimeout(() => {
     if (window.location.host == 'login.taobao.com') {
@@ -686,6 +710,13 @@ function dealWithSearchRes(content) {
     }, 500);
   } else {
     document.getElementById("Coupon-box").style.display = 'none';
+  }
+  if (content.specialEvent && content.specialEvent.html) {
+    document.getElementById("specialEvent-box").style.display = 'block';
+    const specialEventElement = createElementFromHTML(content.specialEvent.html)
+
+    const containerDiv = document.getElementById("specialEvent-container");
+    containerDiv.appendChild(specialEventElement);
   }
   if (content.similarGoods && content.similarGoods.length > 0) {
     setTimeout(() => {

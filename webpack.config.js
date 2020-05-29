@@ -34,6 +34,9 @@ module.exports = {
       vue: 'vue/dist/vue.runtime.esm.js'
     }
   },
+  node: {
+    fs: 'empty'
+  },
   module: {
     rules: [
       {

@@ -64,6 +64,8 @@ a.teaclub-coupon:hover {
   vertical-align: middle;
 }
 
+
+
 #teaclub .qrcode{
   width: 60px;
   display: block;
@@ -171,6 +173,14 @@ a.teaclub-coupon:hover {
 #teaclub .PDD-image {
   height: 100%;
   width: 100%;
+}
+
+#teaclub .PDD-qrcode {
+  position: absolute;
+}
+
+#teaclub .PDD-cardContainer:hover .PDD-qrcode {
+  z-index: 10;
 }
 
 #teaclub .PDD-info {
