@@ -10,7 +10,11 @@
           <div class="weui-dialog__bd">
             <p>感谢你使用茶友会！以下是一些简单的介绍：</p>
             <p>茶友会是一个<a href="https://github.com/sunoj/teaclub" target="_blank">公开源代码</a>的浏览器插件。它能自动搜索淘宝商品的渠道优惠券，还内置一系列替你进行签到、领飞猪里程的小任务。</p>
-            <p>由于淘宝网页经常更新，茶友会受其影响可能部分功能有时变得不可用，因此茶友会会经常更新以保持功能正常。如果你使用的不是 <a href="https://chrome.google.com/webstore/detail/igedhbjllcmgidlmhclmphmhlllkibkb" target="_blank">Chrome 拓展商店</a> 安装，强烈建议您使用上述渠道安装，只有这样你才能获得官方的自动更新。</p>
+            <p>由于淘宝网页经常更新，茶友会受其影响可能部分功能有时变得不可用，因此茶友会会经常更新以保持功能正常。如果你使用的不是
+              <a v-if="browser == 'chrome'" href="https://chrome.google.com/webstore/detail/igedhbjllcmgidlmhclmphmhlllkibkb" target="_blank">Chrome 拓展商店</a>
+              <a v-if="browser == 'firefox'" href="https://addons.mozilla.org/zh-CN/firefox/addon/teaclub/" target="_blank">Firefox 官方商店</a>
+              <a v-if="browser == 'edge'" href="https://microsoftedge.microsoft.com/addons/detail/aniokofeapdnfnihjgfeonlkmhfajobk" target="_blank">Microsoft Edge 扩展中心</a>
+             安装，强烈建议您使用上述渠道安装，只有这样你才能获得官方的自动更新。</p>
           </div>
           <div class="weui-dialog__ft">
             <a class="weui-dialog__btn weui-dialog__btn_primary answer" @click="step = 2">继续</a>
@@ -45,7 +49,8 @@ export default {
   props: ["loginState"],
   data() {
     return {
-      step: 1
+      step: 1,
+      browser: process.env.BROWSER
     };
   },
   methods: {
